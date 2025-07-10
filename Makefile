@@ -1,141 +1,235 @@
-# SEMP协议解析库 Makefile
-# 适用于Linux/Windows/macOS
+#
+# Makefile for Multi-Protocol Message Parser
+# 支持单协议SEMP解析器和模块化多协议解析器
+#
 
 # 编译器设置
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -O2
-CPPFLAGS = -Wall -Wextra -std=c++11 -O2
-SRCDIR = src
-OBJDIR = build
-BINDIR = bin
+CFLAGS = -Wall -Wextra -O2 -std=c99 -Isrc/
+LDFLAGS = 
 
-# 创建目录
-$(shell mkdir -p $(OBJDIR) $(BINDIR))
+# 目录设置
+SRC_DIR = src
+BIN_DIR = bin
 
-# 源文件
-SEMP_CORE = $(SRCDIR)/semp_parser.c
-SEMP_HEADER = $(SRCDIR)/semp_parser.h
-MULTIPROTO_CORE = $(SRCDIR)/multi_protocol_parser.c
-MULTIPROTO_HEADER = $(SRCDIR)/multi_protocol_parser.h
+# 确保目录存在
+$(shell mkdir -p $(BIN_DIR))
 
-# 目标程序
-TARGETS = $(BINDIR)/demo $(BINDIR)/test_tool $(BINDIR)/example $(BINDIR)/multi_demo $(BINDIR)/multi_example
+#------------------------------------------------
+# 源文件定义
+#------------------------------------------------
 
-# 默认目标
-all: $(TARGETS)
+# 原始SEMP解析器源文件
+SEMP_SOURCES = $(SRC_DIR)/semp_parser.c
 
-# 演示程序（简化版main）
-$(BINDIR)/demo: $(SRCDIR)/main.cpp $(SEMP_CORE) $(SEMP_HEADER)
-	@echo "编译演示程序..."
-	$(CC) $(CPPFLAGS) -o $@ $(SRCDIR)/main.cpp $(SEMP_CORE)
-	@echo "✅ 演示程序编译完成: $@"
+# 新的模块化消息解析器源文件
+MESSAGE_PARSER_CORE = $(SRC_DIR)/Message_Parser.c
+MESSAGE_PARSER_PROTOCOLS = $(SRC_DIR)/Parse_BT.c \
+                          $(SRC_DIR)/Parse_NMEA.c \
+                          $(SRC_DIR)/Parse_UBLOX.c \
+                          $(SRC_DIR)/Parse_RTCM.c \
+                          $(SRC_DIR)/Parse_Unicore_Binary.c \
+                          $(SRC_DIR)/Parse_Unicore_Hash.c
 
-# 详细测试工具
-$(BINDIR)/test_tool: $(SRCDIR)/test_tool.c $(SEMP_CORE) $(SEMP_HEADER)
-	@echo "编译测试工具..."
-	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/test_tool.c $(SEMP_CORE)
-	@echo "✅ 测试工具编译完成: $@"
+MESSAGE_PARSER_SOURCES = $(MESSAGE_PARSER_CORE) $(MESSAGE_PARSER_PROTOCOLS)
 
-# 完整示例程序
-$(BINDIR)/example: $(SRCDIR)/semp_example.c $(SEMP_CORE) $(SEMP_HEADER)
-	@echo "编译示例程序..."
-	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/semp_example.c $(SEMP_CORE)
-	@echo "✅ 示例程序编译完成: $@"
+# 示例和演示程序源文件
+DEMO_SOURCES = $(SRC_DIR)/main.cpp
+TEST_SOURCES = $(SRC_DIR)/test_tool.c
+SEMP_EXAMPLE_SOURCES = $(SRC_DIR)/semp_example.c
+MESSAGE_PARSER_DEMO_SOURCES = $(SRC_DIR)/message_parser_demo.c
+MESSAGE_PARSER_EXAMPLE_SOURCES = $(SRC_DIR)/message_parser_example.c
 
-# 多协议演示程序
-$(BINDIR)/multi_demo: $(SRCDIR)/multi_protocol_demo.c $(MULTIPROTO_CORE) $(MULTIPROTO_HEADER)
-	@echo "编译多协议演示程序..."
-	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/multi_protocol_demo.c $(MULTIPROTO_CORE)
-	@echo "✅ 多协议演示程序编译完成: $@"
+#------------------------------------------------
+# 目标文件定义
+#------------------------------------------------
 
-# 多协议实际应用示例
-$(BINDIR)/multi_example: $(SRCDIR)/multi_protocol_example.c $(MULTIPROTO_CORE) $(MULTIPROTO_HEADER)
-	@echo "编译多协议应用示例..."
-	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/multi_protocol_example.c $(MULTIPROTO_CORE)
-	@echo "✅ 多协议应用示例编译完成: $@"
+SEMP_OBJECTS = $(SEMP_SOURCES:.c=.o)
+MESSAGE_PARSER_OBJECTS = $(MESSAGE_PARSER_SOURCES:.c=.o)
 
-# 静态库（可选）
-$(BINDIR)/libsemp.a: $(OBJDIR)/semp_parser.o
-	@echo "创建静态库..."
-	ar rcs $@ $^
-	@echo "✅ 静态库创建完成: $@"
+#------------------------------------------------
+# 编译目标
+#------------------------------------------------
 
-$(OBJDIR)/semp_parser.o: $(SEMP_CORE) $(SEMP_HEADER)
-	$(CC) $(CFLAGS) -c -o $@ $(SEMP_CORE)
+.PHONY: all clean help install check docs
+.PHONY: semp-demo semp-test semp-example 
+.PHONY: mp-demo mp-example
+.PHONY: demo test example multi_demo multi_example
 
-# 清理
+# 默认目标 - 编译所有程序
+all: semp-demo semp-test semp-example mp-demo mp-example
+
+#------------------------------------------------
+# SEMP协议解析器目标（保持向后兼容）
+#------------------------------------------------
+
+# SEMP演示程序（原main.cpp）
+semp-demo: $(BIN_DIR)/semp_demo
+demo: semp-demo
+
+$(BIN_DIR)/semp_demo: $(SRC_DIR)/main.cpp $(SEMP_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# SEMP测试工具
+semp-test: $(BIN_DIR)/semp_test
+test: semp-test
+
+$(BIN_DIR)/semp_test: $(SRC_DIR)/test_tool.c $(SEMP_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# SEMP示例程序
+semp-example: $(BIN_DIR)/semp_example
+example: semp-example
+
+$(BIN_DIR)/semp_example: $(SRC_DIR)/semp_example.c $(SEMP_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+#------------------------------------------------
+# 模块化消息解析器目标
+#------------------------------------------------
+
+# 消息解析器演示程序
+mp-demo: $(BIN_DIR)/message_parser_demo
+multi_demo: mp-demo
+
+$(BIN_DIR)/message_parser_demo: $(SRC_DIR)/message_parser_demo.c $(MESSAGE_PARSER_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# 消息解析器示例程序
+mp-example: $(BIN_DIR)/message_parser_example
+multi_example: mp-example
+
+$(BIN_DIR)/message_parser_example: $(SRC_DIR)/message_parser_example.c $(MESSAGE_PARSER_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+#------------------------------------------------
+# 对象文件编译规则
+#------------------------------------------------
+
+# C文件编译规则
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# C++文件编译规则  
+$(SRC_DIR)/main.o: $(SRC_DIR)/main.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+#------------------------------------------------
+# 实用工具目标
+#------------------------------------------------
+
+# 清理编译文件
 clean:
 	@echo "清理编译文件..."
-	rm -rf $(OBJDIR) $(BINDIR)
-	rm -f *.o *.a semp_parser test_tool
-	@echo "✅ 清理完成"
+	@rm -f $(SRC_DIR)/*.o
+	@rm -f $(BIN_DIR)/*
+	@echo "清理完成！"
 
-# 测试运行
-test: $(BINDIR)/test_tool
-	@echo "运行测试工具..."
-	./$(BINDIR)/test_tool
+# 安装（复制到系统目录，需要root权限）
+install: all
+	@echo "安装解析器工具..."
+	@sudo cp $(BIN_DIR)/* /usr/local/bin/
+	@echo "安装完成！"
 
-# 演示运行
-demo: $(BINDIR)/demo
-	@echo "运行演示程序..."
-	./$(BINDIR)/demo
-
-# 安装头文件和库（可选）
-install: $(BINDIR)/libsemp.a
-	@echo "安装SEMP库..."
-	mkdir -p /usr/local/include/semp
-	mkdir -p /usr/local/lib
-	cp $(SEMP_HEADER) /usr/local/include/semp/
-	cp $(BINDIR)/libsemp.a /usr/local/lib/
-	@echo "✅ 安装完成"
-
-# 卸载
-uninstall:
-	@echo "卸载SEMP库..."
-	rm -rf /usr/local/include/semp
-	rm -f /usr/local/lib/libsemp.a
-	@echo "✅ 卸载完成"
+# 代码检查
+check:
+	@echo "运行代码检查..."
+	@cppcheck --enable=all --suppress=missingIncludeSystem $(SRC_DIR)/ 2>/dev/null || echo "cppcheck未安装，跳过静态检查"
+	@echo "编译测试..."
+	@$(CC) $(CFLAGS) -fsyntax-only $(SRC_DIR)/*.c
+	@echo "代码检查完成！"
 
 # 生成文档（需要doxygen）
 docs:
-	@if command -v doxygen >/dev/null 2>&1; then \
-		echo "生成API文档..."; \
-		doxygen; \
-		echo "✅ 文档生成完成"; \
-	else \
-		echo "❌ 需要安装doxygen来生成文档"; \
-	fi
+	@echo "生成API文档..."
+	@doxygen Doxyfile 2>/dev/null || echo "doxygen未安装，请手动查看头文件中的文档"
+	@echo "文档生成完成！"
 
-# 代码检查（需要cppcheck）
-check:
-	@if command -v cppcheck >/dev/null 2>&1; then \
-		echo "进行代码检查..."; \
-		cppcheck --enable=all --std=c99 $(SRCDIR)/*.c $(SRCDIR)/*.h; \
-		echo "✅ 代码检查完成"; \
-	else \
-		echo "❌ 需要安装cppcheck来进行代码检查"; \
-	fi
-
+#------------------------------------------------
 # 帮助信息
-help:
-	@echo "SEMP协议解析库 - 可用命令："
-	@echo ""
-	@echo "  make all          - 编译所有程序"
-	@echo "  make demo         - 编译并运行SEMP演示程序"
-	@echo "  make test         - 编译并运行测试工具"
-	@echo "  make example      - 编译SEMP示例程序"
-	@echo "  make multi_demo   - 编译多协议演示程序"
-	@echo "  make multi_example- 编译多协议应用示例"
-	@echo "  make clean        - 清理编译文件"
-	@echo "  make install      - 安装库和头文件"
-	@echo "  make uninstall    - 卸载库和头文件"
-	@echo "  make docs         - 生成API文档"
-	@echo "  make check        - 代码质量检查"
-	@echo "  make help         - 显示此帮助信息"
-	@echo ""
-	@echo "编译输出目录："
-	@echo "  $(BINDIR)/       - 可执行文件"
-	@echo "  $(OBJDIR)/       - 目标文件"
+#------------------------------------------------
 
-# 声明伪目标
-.PHONY: all clean test demo install uninstall docs check help 
+help:
+	@echo ""
+	@echo "=================================="
+	@echo "  消息解析器项目编译系统帮助"
+	@echo "=================================="
+	@echo ""
+	@echo "主要目标："
+	@echo "  all              - 编译所有程序"
+	@echo "  clean            - 清理所有编译文件"
+	@echo "  help             - 显示此帮助信息"
+	@echo ""
+	@echo "SEMP协议解析器（单协议）："
+	@echo "  semp-demo        - SEMP协议演示程序"
+	@echo "  semp-test        - SEMP协议测试工具"
+	@echo "  semp-example     - SEMP协议使用示例"
+	@echo ""
+	@echo "模块化消息解析器（多协议）："
+	@echo "  mp-demo          - 多协议演示程序"
+	@echo "  mp-example       - 多协议使用示例"
+	@echo ""
+	@echo "兼容性别名："
+	@echo "  demo             - 等同于 semp-demo"
+	@echo "  test             - 等同于 semp-test"
+	@echo "  example          - 等同于 semp-example"
+	@echo "  multi_demo       - 等同于 mp-demo"
+	@echo "  multi_example    - 等同于 mp-example"
+	@echo ""
+	@echo "实用工具："
+	@echo "  install          - 安装到系统（需要sudo）"
+	@echo "  check            - 运行代码检查"
+	@echo "  docs             - 生成API文档"
+	@echo ""
+	@echo "支持的协议："
+	@echo "  - BT/SEMP        - 蓝牙/SEMP协议（0xAA 0x44 0x18）"
+	@echo "  - NMEA           - NMEA GPS协议（$）"
+	@echo "  - u-blox         - u-blox二进制协议（0xB5 0x62）"
+	@echo "  - RTCM           - RTCM差分GPS协议（0xD3）"
+	@echo "  - Unicore-Bin    - 中海达二进制协议（0xAA 0x44 0x12）"
+	@echo "  - Unicore-Hash   - 中海达Hash协议（#）"
+	@echo ""
+	@echo "使用示例："
+	@echo "  make all         - 编译所有程序"
+	@echo "  make mp-demo     - 编译多协议演示程序"
+	@echo "  make semp-test   - 编译SEMP测试工具"
+	@echo "  make clean       - 清理编译文件"
+	@echo ""
+	@echo "运行示例："
+	@echo "  ./bin/semp_demo                  - 运行SEMP演示"
+	@echo "  ./bin/message_parser_demo        - 运行多协议演示"
+	@echo "  ./bin/semp_test [hex_data]       - 测试SEMP数据包"
+	@echo ""
+	@echo "项目结构："
+	@echo "  src/             - 源代码目录"
+	@echo "  bin/             - 编译输出目录"
+	@echo "  lib/             - 参考实现库"
+	@echo "  README.md        - SEMP协议文档"
+	@echo "  MULTI_PROTOCOL_README.md - 多协议文档"
+	@echo "  PROJECT_STRUCTURE.md     - 项目结构说明"
+	@echo ""
+
+#------------------------------------------------
+# 依赖关系
+#------------------------------------------------
+
+# SEMP解析器依赖
+$(SRC_DIR)/main.o: $(SRC_DIR)/semp_parser.h
+$(SRC_DIR)/test_tool.o: $(SRC_DIR)/semp_parser.h
+$(SRC_DIR)/semp_example.o: $(SRC_DIR)/semp_parser.h
+$(SRC_DIR)/semp_parser.o: $(SRC_DIR)/semp_parser.h
+
+# 消息解析器核心依赖
+$(SRC_DIR)/Message_Parser.o: $(SRC_DIR)/Message_Parser.h
+
+# 协议解析器依赖
+$(SRC_DIR)/Parse_BT.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/Parse_NMEA.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/Parse_UBLOX.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/Parse_RTCM.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/Parse_Unicore_Binary.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/Parse_Unicore_Hash.o: $(SRC_DIR)/Message_Parser.h
+
+# 示例程序依赖
+$(SRC_DIR)/message_parser_demo.o: $(SRC_DIR)/Message_Parser.h
+$(SRC_DIR)/message_parser_example.o: $(SRC_DIR)/Message_Parser.h 
