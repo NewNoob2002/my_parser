@@ -61,9 +61,9 @@ static void mpNmeaValidateChecksum(MP_PARSE_STATE *parse)
     checksum |= mpAsciiToNibble(parse->buffer[parse->length - 1]);
 
     // 验证校验和
-    if ((checksum == (int)(parse->crc & 0xFF)) || 
-        (parse->badCrc && (!parse->badCrc(parse)))) {
-        
+    bool checksum_ok = (checksum == (int)(parse->crc & 0xFF));
+
+    if (checksum_ok) {
         // 校验和正确，添加CRLF
         parse->buffer[parse->length++] = '\r';
         parse->buffer[parse->length++] = '\n';
@@ -81,12 +81,19 @@ static void mpNmeaValidateChecksum(MP_PARSE_STATE *parse)
     } else {
         // 校验和错误
         parse->crcErrors[MP_PROTOCOL_NMEA]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s NMEA %s, 校验和错误, 接收: %c%c, 计算: %02X",
-            parse->parserName ? parse->parserName : "Unknown",
-            scratchPad->nmea.info.sentenceName,
-            parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
-            (uint8_t)(parse->crc & 0xFF));
+        bool reset = true; // 默认重置
+        if (parse->badCrc) {
+            reset = parse->badCrc(parse); // 让用户决定是否重置
+        }
+        
+        if (!reset) { // 如果用户决定不重置（例如，为了调试），则打印更详细的信息
+             mpSafePrintf(parse->printDebug,
+                "MP: %s NMEA %s, 校验和错误, 接收: %c%c, 计算: %02X (未重置)",
+                parse->parserName ? parse->parserName : "Unknown",
+                scratchPad->nmea.info.sentenceName,
+                parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
+                (uint8_t)(parse->crc & 0xFF));
+        }
     }
 }
 
@@ -102,14 +109,11 @@ static bool mpNmeaLineTermination(MP_PARSE_STATE *parse, uint8_t data)
     parse->length -= 1;
 
     // 处理行终止符
-    if (data == '\r' || data == '\n') {
-        mpNmeaValidateChecksum(parse);
-        return false; // 消息处理完成
-    }
-
-    // 无效的行终止符，仍然验证并处理消息
     mpNmeaValidateChecksum(parse);
-    return false;
+    
+    // 无论成功或失败，NMEA消息到此结束，重置状态机寻找下一个包
+    parse->state = NULL; //
+    return false; // 消息处理完成
 }
 
 /**
@@ -130,6 +134,7 @@ static bool mpNmeaChecksumByte2(MP_PARSE_STATE *parse, uint8_t data)
     mpSafePrintf(parse->printDebug,
         "MP: %s NMEA无效的第二个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
+    parse->state = NULL;
     return false;
 }
 
@@ -151,6 +156,7 @@ static bool mpNmeaChecksumByte1(MP_PARSE_STATE *parse, uint8_t data)
     mpSafePrintf(parse->printDebug,
         "MP: %s NMEA无效的第一个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
+    parse->state = NULL;
     return false;
 }
 
@@ -176,6 +182,7 @@ static bool mpNmeaFindAsterisk(MP_PARSE_STATE *parse, uint8_t data)
                 "MP: %s NMEA语句过长, 增加缓冲区大小 > %d",
                 parse->parserName ? parse->parserName : "Unknown",
                 parse->bufferLength);
+            parse->state = NULL;
             return false;
         }
     }
@@ -191,37 +198,30 @@ static bool mpNmeaFindAsterisk(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpNmeaFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
 {
     MP_SCRATCH_PAD *scratchPad = &parse->scratchPad;
+
+    // 包含在校验和计算中的数据字节
     parse->crc ^= data;
-    
-    if ((data != ',') || (scratchPad->nmea.info.sentenceNameLength == 0)) {
-        // 验证语句名称字符的有效性
-        uint8_t upper = data & ~0x20; // 转换为大写
-        if (((upper < 'A') || (upper > 'Z')) && ((data < '0') || (data > '9'))) {
-            mpSafePrintf(parse->printDebug,
-                "MP: %s NMEA无效语句名字符: 0x%02X ('%c')",
-                parse->parserName ? parse->parserName : "Unknown", data, 
-                (data >= 32 && data <= 126) ? data : '?');
-            return false;
-        }
 
-        // 检查语句名称长度
-        if (scratchPad->nmea.info.sentenceNameLength >= (MP_MAX_SENTENCE_NAME - 1)) {
-            mpSafePrintf(parse->printDebug,
-                "MP: %s NMEA语句名过长 > %d 字符",
-                parse->parserName ? parse->parserName : "Unknown", 
-                MP_MAX_SENTENCE_NAME - 1);
-            return false;
+    if (data == ',') {
+        // 找到第一个逗号，语句名称结束
+        // 将语句名称复制到暂存区，并添加零终止符
+        if (scratchPad->nmea.info.sentenceNameLength < sizeof(scratchPad->nmea.info.sentenceName)) {
+            scratchPad->nmea.info.sentenceName[scratchPad->nmea.info.sentenceNameLength] = '\0';
+        } else {
+            // 防止溢出
+            scratchPad->nmea.info.sentenceName[sizeof(scratchPad->nmea.info.sentenceName) - 1] = '\0';
         }
-
-        // 保存语句名称字符
-        scratchPad->nmea.info.sentenceName[scratchPad->nmea.info.sentenceNameLength++] = data;
-    } else {
-        // 找到第一个逗号，语句名称读取完成
-        scratchPad->nmea.info.sentenceName[scratchPad->nmea.info.sentenceNameLength] = 0;
-        parse->state = mpNmeaFindAsterisk;
         
-        mpSafePrintf(parse->printDebug,
-            "MP: NMEA语句名: %s", scratchPad->nmea.info.sentenceName);
+        parse->state = mpNmeaFindAsterisk;
+    } else {
+        // 继续读取语句名称
+        if (scratchPad->nmea.info.sentenceNameLength < sizeof(scratchPad->nmea.info.sentenceName) -1) {
+             scratchPad->nmea.info.sentenceName[scratchPad->nmea.info.sentenceNameLength++] = data;
+        } else {
+            mpSafePrintf(parse->printDebug, "MP: NMEA语句名称过长");
+            parse->state = NULL;
+            return false;
+        }
     }
     return true;
 }

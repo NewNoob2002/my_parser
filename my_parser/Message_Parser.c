@@ -346,7 +346,16 @@ bool mpProcessByte(MP_PARSE_STATE *parse, uint8_t data)
     }
 
     // 调用状态处理函数
-    return parse->state(parse, data);
+    bool result = parse->state(parse, data);
+
+    // 如果状态函数返回false，表示当前消息处理结束（无论成功或失败）
+    // 或者状态被显式设为NULL，表示需要立即重置
+    if (!result || parse->state == NULL) {
+        // 重置状态机以寻找下一个消息的前导字节
+        return mpFindPreamble(parse, data);
+    }
+
+    return result;
 }
 
 MP_PROTOCOL_TYPE mpGetActiveProtocol(const MP_PARSE_STATE *parse)

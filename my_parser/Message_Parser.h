@@ -47,12 +47,12 @@ typedef struct _MP_PARSE_STATE MP_PARSE_STATE;
 //----------------------------------------
 
 typedef enum {
-    MP_PROTOCOL_BT = 0,          // 蓝牙/SEMP协议
+    MP_PROTOCOL_BT = 0,          // 自定义/SEMP协议
     MP_PROTOCOL_NMEA,            // NMEA GPS协议
     MP_PROTOCOL_UBLOX,           // u-blox GPS协议
     MP_PROTOCOL_RTCM,            // RTCM差分GPS协议
-    MP_PROTOCOL_UNICORE_BIN,     // 中海达二进制协议
-    MP_PROTOCOL_UNICORE_HASH,    // 中海达Hash协议
+    MP_PROTOCOL_UNICORE_BIN,     // Unicore二进制协议
+    MP_PROTOCOL_UNICORE_HASH,    // Unicore_Hash协议
     MP_PROTOCOL_COUNT            // 协议总数
 } MP_PROTOCOL_TYPE;
 
