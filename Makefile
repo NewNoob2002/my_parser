@@ -15,9 +15,11 @@ $(shell mkdir -p $(OBJDIR) $(BINDIR))
 # 源文件
 SEMP_CORE = $(SRCDIR)/semp_parser.c
 SEMP_HEADER = $(SRCDIR)/semp_parser.h
+MULTIPROTO_CORE = $(SRCDIR)/multi_protocol_parser.c
+MULTIPROTO_HEADER = $(SRCDIR)/multi_protocol_parser.h
 
 # 目标程序
-TARGETS = $(BINDIR)/demo $(BINDIR)/test_tool $(BINDIR)/example
+TARGETS = $(BINDIR)/demo $(BINDIR)/test_tool $(BINDIR)/example $(BINDIR)/multi_demo $(BINDIR)/multi_example
 
 # 默认目标
 all: $(TARGETS)
@@ -39,6 +41,18 @@ $(BINDIR)/example: $(SRCDIR)/semp_example.c $(SEMP_CORE) $(SEMP_HEADER)
 	@echo "编译示例程序..."
 	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/semp_example.c $(SEMP_CORE)
 	@echo "✅ 示例程序编译完成: $@"
+
+# 多协议演示程序
+$(BINDIR)/multi_demo: $(SRCDIR)/multi_protocol_demo.c $(MULTIPROTO_CORE) $(MULTIPROTO_HEADER)
+	@echo "编译多协议演示程序..."
+	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/multi_protocol_demo.c $(MULTIPROTO_CORE)
+	@echo "✅ 多协议演示程序编译完成: $@"
+
+# 多协议实际应用示例
+$(BINDIR)/multi_example: $(SRCDIR)/multi_protocol_example.c $(MULTIPROTO_CORE) $(MULTIPROTO_HEADER)
+	@echo "编译多协议应用示例..."
+	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/multi_protocol_example.c $(MULTIPROTO_CORE)
+	@echo "✅ 多协议应用示例编译完成: $@"
 
 # 静态库（可选）
 $(BINDIR)/libsemp.a: $(OBJDIR)/semp_parser.o
@@ -106,16 +120,18 @@ check:
 help:
 	@echo "SEMP协议解析库 - 可用命令："
 	@echo ""
-	@echo "  make all        - 编译所有程序"
-	@echo "  make demo       - 编译并运行演示程序"
-	@echo "  make test       - 编译并运行测试工具"
-	@echo "  make example    - 编译示例程序"
-	@echo "  make clean      - 清理编译文件"
-	@echo "  make install    - 安装库和头文件"
-	@echo "  make uninstall  - 卸载库和头文件"
-	@echo "  make docs       - 生成API文档"
-	@echo "  make check      - 代码质量检查"
-	@echo "  make help       - 显示此帮助信息"
+	@echo "  make all          - 编译所有程序"
+	@echo "  make demo         - 编译并运行SEMP演示程序"
+	@echo "  make test         - 编译并运行测试工具"
+	@echo "  make example      - 编译SEMP示例程序"
+	@echo "  make multi_demo   - 编译多协议演示程序"
+	@echo "  make multi_example- 编译多协议应用示例"
+	@echo "  make clean        - 清理编译文件"
+	@echo "  make install      - 安装库和头文件"
+	@echo "  make uninstall    - 卸载库和头文件"
+	@echo "  make docs         - 生成API文档"
+	@echo "  make check        - 代码质量检查"
+	@echo "  make help         - 显示此帮助信息"
 	@echo ""
 	@echo "编译输出目录："
 	@echo "  $(BINDIR)/       - 可执行文件"
