@@ -1,0 +1,39 @@
+cmake_minimum_required(VERSION 3.10)
+project(single_parser LANGUAGES C CXX)
+
+# 设置C标准
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# 设置C++标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 添加当前目录为头文件搜索路径
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# 创建 multi_protocol_parser 库
+add_library(multi_protocol_parser_lib STATIC multi_protocol_parser.c)
+
+# 创建 semp_parser 库
+add_library(semp_parser_lib STATIC semp_parser.c)
+
+# 创建主程序
+add_executable(single_parser_main main.cpp)
+target_link_libraries(single_parser_main PRIVATE semp_parser_lib)
+
+# 创建 multi_protocol_demo
+add_executable(multi_protocol_demo multi_protocol_demo.c)
+target_link_libraries(multi_protocol_demo PRIVATE multi_protocol_parser_lib)
+
+# 创建 multi_protocol_example
+add_executable(multi_protocol_example multi_protocol_example.c)
+target_link_libraries(multi_protocol_example PRIVATE multi_protocol_parser_lib)
+
+# 创建 semp_example
+add_executable(semp_example semp_example.c)
+target_link_libraries(semp_example PRIVATE semp_parser_lib)
+
+# 创建 test_tool
+add_executable(test_tool test_tool.c)
+target_link_libraries(test_tool PRIVATE semp_parser_lib)

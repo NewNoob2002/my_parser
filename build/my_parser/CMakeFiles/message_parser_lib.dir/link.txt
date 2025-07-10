@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libmessage_parser_lib.a CMakeFiles/message_parser_lib.dir/Message_Parser.c.o CMakeFiles/message_parser_lib.dir/Parse_BT.c.o CMakeFiles/message_parser_lib.dir/Parse_NMEA.c.o CMakeFiles/message_parser_lib.dir/Parse_RTCM.c.o CMakeFiles/message_parser_lib.dir/Parse_UBLOX.c.o CMakeFiles/message_parser_lib.dir/Parse_Unicore_Binary.c.o CMakeFiles/message_parser_lib.dir/Parse_Unicore_Hash.c.o
+/usr/bin/ranlib ../lib/libmessage_parser_lib.a

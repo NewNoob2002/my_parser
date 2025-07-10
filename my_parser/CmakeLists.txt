@@ -1,0 +1,39 @@
+cmake_minimum_required(VERSION 3.10)
+project(my_parser LANGUAGES C CXX)
+
+# 设置C标准
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# 设置C++标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 添加当前目录为头文件搜索路径
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# 收集所有解析器源文件
+file(GLOB PARSER_SOURCES
+    "Parse_BT.c"
+    "Parse_NMEA.c"
+    "Parse_RTCM.c"
+    "Parse_UBLOX.c"
+    "Parse_Unicore_Binary.c"
+    "Parse_Unicore_Hash.c"
+    "Message_Parser.c"
+)
+
+# 创建一个静态库
+add_library(message_parser_lib STATIC ${PARSER_SOURCES})
+
+# 创建主程序
+add_executable(my_parser_main main.cpp)
+target_link_libraries(my_parser_main PRIVATE message_parser_lib)
+
+# 创建demo程序1
+add_executable(message_parser_demo demo/message_parser_demo.c)
+target_link_libraries(message_parser_demo PRIVATE message_parser_lib)
+
+# 创建demo程序2
+add_executable(message_parser_example demo/message_parser_example.c)
+target_link_libraries(message_parser_example PRIVATE message_parser_lib)

@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/my_parser_main.dir/main.cpp.o -o ../bin/my_parser_main  ../lib/libmessage_parser_lib.a
