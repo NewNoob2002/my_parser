@@ -12,6 +12,11 @@
 #include "semp_parser.h"
 #include <stdio.h>
 
+// 函数前向声明
+void handleControlCommand(SEMP_MESSAGE_HEADER *header, uint8_t *fullMessage);
+void handleDataTransfer(SEMP_MESSAGE_HEADER *header, uint8_t *fullMessage);
+void handleStatusQuery(SEMP_MESSAGE_HEADER *header, uint8_t *fullMessage);
+
 // ===== 单片机典型应用示例 =====
 
 // 全局解析器实例（适合中断环境）
@@ -65,6 +70,7 @@ void onMessageReceived(SEMP_PARSE_STATE *parse, uint8_t messageType)
 // CRC错误处理回调（可选）
 bool onCrcError(SEMP_PARSE_STATE *parse)
 {
+    (void)parse; // 消除未使用参数警告
     printf("CRC校验失败，消息被丢弃\n");
     // 可以在这里记录错误统计、触发重传等
     return false; // 返回false表示丢弃消息
@@ -84,6 +90,8 @@ void sempInit(void)
 }
 
 // ===== UART接收中断处理示例 =====
+// 注意: 以下代码仅为示例，实际使用时需要根据具体MCU调整
+/*
 void UART_IRQHandler(void)
 {
     if (UART_GetFlagStatus(UART1, UART_FLAG_RXNE)) {
@@ -95,8 +103,11 @@ void UART_IRQHandler(void)
         UART_ClearFlag(UART1, UART_FLAG_RXNE);
     }
 }
+*/
 
 // ===== DMA接收完成中断处理示例 =====
+// 注意: 以下代码仅为示例，实际使用时需要根据具体MCU调整
+/*
 static uint8_t dmaBuffer[256];
 
 void DMA_IRQHandler(void)
@@ -114,6 +125,7 @@ void DMA_IRQHandler(void)
         DMA_ClearFlag(DMA1_Stream0, DMA_FLAG_TCIF0);
     }
 }
+*/
 
 // ===== 蓝牙/WiFi数据包处理示例 =====
 void processBluetoothPacket(uint8_t *packet, uint16_t length)
@@ -203,6 +215,7 @@ void handleDataTransfer(SEMP_MESSAGE_HEADER *header, uint8_t *fullMessage)
 
 void handleStatusQuery(SEMP_MESSAGE_HEADER *header, uint8_t *fullMessage)
 {
+    (void)fullMessage; // 消除未使用参数警告
     printf("处理状态查询 (ID: 0x%04X)\n", header->messageId);
     
     // 根据查询类型返回相应状态
@@ -327,4 +340,43 @@ void testSempParser(void)
  *    - 避免使用printf在实际产品中（使用串口输出或日志系统）
  *    - 适配不同编译器的数据类型定义
  *    - 考虑大小端字节序兼容性
- */ 
+ */
+
+// ===== 主函数 - 演示完整功能 =====
+int main(void)
+{
+    printf("=== SEMP协议解析库完整示例 ===\n\n");
+    
+    // 初始化解析器
+    sempInit();
+    
+    printf("📖 此示例展示了SEMP解析库在实际项目中的使用方法\n");
+    printf("📋 包含的功能:\n");
+    printf("   • UART中断处理 (注释状态)\n");
+    printf("   • DMA批量处理 (注释状态)\n");
+    printf("   • 蓝牙/WiFi数据包处理\n");
+    printf("   • 文件流处理\n");
+    printf("   • 完整的消息类型处理框架\n");
+    printf("   • 性能优化建议\n\n");
+    
+    printf("🔧 在实际单片机项目中使用时:\n");
+    printf("   1. 取消注释相关中断处理函数\n");
+    printf("   2. 根据具体MCU调整硬件相关代码\n");
+    printf("   3. 实现具体的消息处理逻辑\n");
+    printf("   4. 配置相应的回调函数\n\n");
+    
+    // 模拟蓝牙数据包处理
+    uint8_t bluetoothPacket[] = {
+        0xAA, 0x44, 0x18, 0x14, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x01, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00,
+        0x01, 0x8E, 0x42, 0x7A, 0x75
+    };
+    
+    printf("🧪 模拟蓝牙数据包处理...\n");
+    processBluetoothPacket(bluetoothPacket, sizeof(bluetoothPacket));
+    
+    printf("✨ 示例程序运行完成！\n");
+    printf("📚 更多详细信息请查看源代码注释\n");
+    
+    return 0;
+} 

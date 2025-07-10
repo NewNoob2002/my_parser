@@ -5,6 +5,7 @@
 // 详细的消息解析回调
 void detailedEomCallback(SEMP_PARSE_STATE *parse, uint8_t messageType)
 {
+    (void)messageType; // 消除未使用参数警告
     printf("=== 数据包解析成功 ===\n");
     printf("总长度: %d字节\n", parse->length);
     
@@ -105,6 +106,7 @@ void detailedEomCallback(SEMP_PARSE_STATE *parse, uint8_t messageType)
 // CRC错误回调
 bool crcErrorCallback(SEMP_PARSE_STATE *parse)
 {
+    (void)parse; // 消除未使用参数警告
     printf("❌ CRC校验失败！\n");
     printf("数据包可能在传输过程中损坏\n");
     return false;
@@ -137,17 +139,32 @@ int main(void)
 {
     printf("=== SEMP协议数据包测试工具 ===\n\n");
     
-    // 测试用户提供的数据包
+    // 测试数据包1: 用户提供的数据包
     uint8_t userData[] = {
         0xAA, 0x44, 0x18, 0x14, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
         0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
         0x01, 0x00, 0xC4, 0xD8, 0xDB, 0x6B
     };
     
-    testDataPacket(userData, sizeof(userData), "用户提供的数据包");
+    // 测试数据包2: 4字节数据的包
+    uint8_t testData2[] = {
+        0xAA, 0x44, 0x18, 0x14, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x04, 0x00, 0x00, 0x00, 0x01, 0x02, 0x01, 0x00,
+        0x11, 0x22, 0x33, 0x44, 0x87, 0x65, 0x43, 0x21
+    };
     
-    // 可以在这里添加更多测试案例
+    // 测试数据包3: 无数据的包
+    uint8_t testData3[] = {
+        0xAA, 0x44, 0x18, 0x14, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x01, 0x00,
+        0x12, 0x34, 0x56, 0x78
+    };
     
-    printf("测试完成！\n");
+    testDataPacket(userData, sizeof(userData), "用户提供的数据包 (2字节数据)");
+    testDataPacket(testData2, sizeof(testData2), "示例数据包 (4字节数据)");
+    testDataPacket(testData3, sizeof(testData3), "示例数据包 (无数据)");
+    
+    printf("🎉 所有测试完成！\n");
+    printf("📝 提示: 您可以修改此文件来测试其他数据包\n");
     return 0;
 } 
