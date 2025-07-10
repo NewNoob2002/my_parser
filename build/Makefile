@@ -117,19 +117,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named message_parser_lib
-
-# Build rule for target.
-message_parser_lib: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 message_parser_lib
-.PHONY : message_parser_lib
-
-# fast build rule for target.
-message_parser_lib/fast:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/build
-.PHONY : message_parser_lib/fast
-
-#=============================================================================
 # Target rules for targets named my_parser_main
 
 # Build rule for target.
@@ -178,7 +165,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... message_parser_demo"
 	@echo "... message_parser_example"
-	@echo "... message_parser_lib"
 	@echo "... my_parser_main"
 .PHONY : help
 

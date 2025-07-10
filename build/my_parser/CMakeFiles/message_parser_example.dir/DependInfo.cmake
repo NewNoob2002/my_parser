@@ -8,6 +8,13 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/gtc/workspace/my_parser/my_parser/Message_Parser.c" "my_parser/CMakeFiles/message_parser_example.dir/Message_Parser.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Message_Parser.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_BT.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_BT.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_BT.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_NMEA.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_NMEA.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_NMEA.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_RTCM.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_RTCM.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_RTCM.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_UBLOX.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_UBLOX.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_UBLOX.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Binary.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Binary.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Binary.c.o.d"
+  "/Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Hash.c" "my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Hash.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Hash.c.o.d"
   "/Users/gtc/workspace/my_parser/my_parser/demo/message_parser_example.c" "my_parser/CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.o" "gcc" "my_parser/CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.o.d"
   )
 

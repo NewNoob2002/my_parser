@@ -144,7 +144,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "my_parser/CMakeFiles/message_parser_lib.dir/DependInfo.cmake"
   "my_parser/CMakeFiles/my_parser_main.dir/DependInfo.cmake"
   "my_parser/CMakeFiles/message_parser_demo.dir/DependInfo.cmake"
   "my_parser/CMakeFiles/message_parser_example.dir/DependInfo.cmake"

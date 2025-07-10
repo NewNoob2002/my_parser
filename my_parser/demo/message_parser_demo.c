@@ -10,6 +10,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
+
+// 引入各协议的Preamble函数声明
+bool mpBtPreamble(MP_PARSE_STATE *parse, uint8_t data);
+bool mpNmeaPreamble(MP_PARSE_STATE *parse, uint8_t data);
+bool mpUbloxPreamble(MP_PARSE_STATE *parse, uint8_t data);
+bool mpRtcmPreamble(MP_PARSE_STATE *parse, uint8_t data);
+bool mpUnicoreBinPreamble(MP_PARSE_STATE *parse, uint8_t data);
+bool mpUnicoreHashPreamble(MP_PARSE_STATE *parse, uint8_t data);
+
+// 定义我们想要使用的协议解析器列表
+static const MP_PARSER_INFO demoParsers[] = {
+    { "BT/SEMP",      mpBtPreamble },
+    { "NMEA",         mpNmeaPreamble },
+    { "u-blox",       mpUbloxPreamble },
+    { "RTCM",         mpRtcmPreamble },
+    { "Unicore-Bin",  mpUnicoreBinPreamble },
+    { "Unicore-Hash", mpUnicoreHashPreamble }
+};
+static const uint16_t demoParserCount = sizeof(demoParsers) / sizeof(demoParsers[0]);
 
 //----------------------------------------
 // 测试数据
@@ -54,8 +74,7 @@ static const char unicore_hash_test_data[] = "#BESTPOSA,COM1,0,55.0,FINESTEERING
 static void onMessageComplete(MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolType)
 {
     printf("\n=== 消息解析完成 ===\n");
-    printf("协议类型: %s\n", mpGetProtocolName(protocolType));
-    printf("协议描述: %s\n", mpGetProtocolDescription(protocolType));
+    printf("协议类型: %s\n", mpGetProtocolName(parse, protocolType));
     printf("消息长度: %d 字节\n", parse->length);
     
     // 显示消息的十六进制数据
@@ -134,7 +153,7 @@ static void onMessageComplete(MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolTy
 
 static bool onCrcError(MP_PARSE_STATE *parse)
 {
-    printf("⚠️  CRC校验错误 - 协议: %s\n", mpGetProtocolName(parse->type));
+    printf("⚠️  CRC校验错误 - 协议: %s\n", mpGetProtocolName(parse, parse->type));
     return false; // 返回false表示要显示错误信息
 }
 
@@ -180,21 +199,18 @@ static void testProtocol(const char *protocolName, const uint8_t *testData,
     printf("\n\n");
     
     // 逐字节处理数据
-    uint16_t processed = mpProcessBuffer(parser, (uint8_t *)testData, dataLength);
+    for(uint16_t i = 0; i < dataLength; i++) {
+        mpProcessByte(parser, testData[i]);
+    }
     
-    printf("处理了 %d/%d 字节\n", processed, dataLength);
+    printf("处理了 %d/%d 字节\n", dataLength, dataLength);
 }
 
-static void demonstrateCapabilities(void)
+static void demonstrateCapabilities(const MP_PARSE_STATE *parser)
 {
     printf("\n📋 支持的协议列表:\n");
     printf("─────────────────────────────────────────\n");
-    printf("1. BT/SEMP     - 蓝牙/SEMP协议 (0xAA 0x44 0x18)\n");
-    printf("2. NMEA        - NMEA GPS协议 ($)\n");
-    printf("3. u-blox      - u-blox二进制协议 (0xB5 0x62)\n");
-    printf("4. RTCM        - RTCM差分GPS协议 (0xD3)\n");
-    printf("5. Unicore-Bin - 中海达二进制协议 (0xAA 0x44 0x12)\n");
-    printf("6. Unicore-Hash- 中海达Hash协议 (#)\n");
+    mpListSupportedProtocols(parser);
     printf("\n");
     
     printf("🔧 主要特性:\n");
@@ -220,13 +236,13 @@ int main(void)
     printf("║                    版本 %s                      ║\n", mpGetVersion());
     printf("╚════════════════════════════════════════════════════╝\n");
     
-    demonstrateCapabilities();
     
     // 初始化解析器
     MP_PARSE_STATE parser;
     uint8_t buffer[1024];
     
     if (!mpInitParser(&parser, buffer, sizeof(buffer),
+                      demoParsers, demoParserCount,
                       onMessageComplete, onCrcError, "演示解析器",
                       onErrorMessage, onDebugMessage)) {
         printf("❌ 解析器初始化失败！\n");
@@ -236,7 +252,7 @@ int main(void)
     printf("✅ 解析器初始化成功！\n");
     
     // 显示支持的协议
-    mpListSupportedProtocols(&parser);
+    demonstrateCapabilities(&parser);
     
     // 测试各种协议
     testProtocol("SEMP/BT协议", semp_test_data, sizeof(semp_test_data), &parser);
@@ -262,7 +278,6 @@ int main(void)
         for (int i = 0; i < statCount; i++) {
             const char *activeMarker = stats[i].isActive ? " [当前活动]" : "";
             printf("%s%s:\n", stats[i].protocolName, activeMarker);
-            printf("  描述: %s\n", stats[i].description);
             printf("  成功消息: %u\n", stats[i].messagesProcessed);
             printf("  CRC错误: %u\n", stats[i].crcErrors);
             printf("  成功率: %.1f%%\n", stats[i].successRate);

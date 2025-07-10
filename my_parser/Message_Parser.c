@@ -69,61 +69,11 @@ static const uint32_t mp_crc32Table[256] = {
 };
 
 //----------------------------------------
-// 协议解析器注册表
+// 内部函数声明
 //----------------------------------------
 
-static const MP_PARSER_INFO mp_parserRegistry[] = {
-    {
-        .name = "BT/SEMP",
-        .preambleFunction = mpBtPreamble,
-        .preambleBytes = {0xAA, 0x44, 0x18, 0x00},
-        .preambleLength = 3,
-        .description = "蓝牙/SEMP协议解析器"
-    },
-    {
-        .name = "NMEA",
-        .preambleFunction = mpNmeaPreamble,
-        .preambleBytes = {'$', 0x00, 0x00, 0x00},
-        .preambleLength = 1,
-        .description = "NMEA GPS协议解析器"
-    },
-    {
-        .name = "u-blox",
-        .preambleFunction = mpUbloxPreamble,
-        .preambleBytes = {0xB5, 0x62, 0x00, 0x00},
-        .preambleLength = 2,
-        .description = "u-blox GPS二进制协议解析器"
-    },
-    {
-        .name = "RTCM",
-        .preambleFunction = mpRtcmPreamble,
-        .preambleBytes = {0xD3, 0x00, 0x00, 0x00},
-        .preambleLength = 1,
-        .description = "RTCM差分GPS协议解析器"
-    },
-    {
-        .name = "Unicore-Bin",
-        .preambleFunction = mpUnicoreBinPreamble,
-        .preambleBytes = {0xAA, 0x44, 0x12, 0x1C},
-        .preambleLength = 4,
-        .description = "中海达二进制协议解析器"
-    },
-    {
-        .name = "Unicore-Hash",
-        .preambleFunction = mpUnicoreHashPreamble,
-        .preambleBytes = {'#', 0x00, 0x00, 0x00},
-        .preambleLength = 1,
-        .description = "中海达Hash协议解析器"
-    }
-};
-
-static const uint16_t mp_parserCount = sizeof(mp_parserRegistry) / sizeof(mp_parserRegistry[0]);
-
-//----------------------------------------
-// 前向声明
-//----------------------------------------
-
-static bool mpFirstByte(MP_PARSE_STATE *parse, uint8_t data);
+// 主状态机 - 寻找前导字节
+static bool mpFindPreamble(MP_PARSE_STATE *parse, uint8_t data);
 
 //----------------------------------------
 // 工具函数实现
@@ -189,47 +139,53 @@ uint8_t mpCalculateChecksum(const uint8_t *data, uint16_t length)
 // 协议信息函数
 //----------------------------------------
 
-const char* mpGetProtocolName(MP_PROTOCOL_TYPE protocolType)
+const char* mpGetProtocolName(const MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolType)
 {
-    if (protocolType >= MP_PROTOCOL_COUNT) {
+    if (!parse || protocolType >= parse->parserCount) {
         return "Unknown";
     }
-    return mp_parserRegistry[protocolType].name;
+    return parse->parsers[protocolType].name;
 }
 
 const char* mpGetProtocolDescription(MP_PROTOCOL_TYPE protocolType)
 {
-    if (protocolType >= MP_PROTOCOL_COUNT) {
-        return "未知协议";
-    }
-    return mp_parserRegistry[protocolType].description;
+    // This function is no longer supported as the description has been removed.
+    // The information should be handled by the user application.
+    if (protocolType >= MP_PROTOCOL_COUNT) return "未知协议";
+    return "描述已移除";
 }
 
 //----------------------------------------
 // 统计函数
 //----------------------------------------
 
+/**
+ * @brief 获取协议统计信息
+ * @param parse 解析器状态
+ * @param stats 统计信息数组
+ * @param maxCount 数组最大长度
+ * @return 实际返回的统计信息数量
+ */
 uint16_t mpGetProtocolStats(const MP_PARSE_STATE *parse, 
                            MP_PROTOCOL_STATS *stats, 
                            uint16_t maxCount)
 {
-    if (!parse || !stats) return 0;
-
-    uint16_t count = 0;
-    for (int i = 0; i < MP_PROTOCOL_COUNT && count < maxCount; i++) {
-        if (parse->messagesProcessed[i] > 0 || parse->crcErrors[i] > 0) {
-            stats[count].protocolName = mp_parserRegistry[i].name;
-            stats[count].description = mp_parserRegistry[i].description;
-            stats[count].messagesProcessed = parse->messagesProcessed[i];
-            stats[count].crcErrors = parse->crcErrors[i];
-            stats[count].isActive = (parse->type == (MP_PROTOCOL_TYPE)i);
-            
-            uint32_t total = stats[count].messagesProcessed + stats[count].crcErrors;
-            stats[count].successRate = total > 0 ? 
-                (float)stats[count].messagesProcessed / total * 100.0f : 0.0f;
-            count++;
-        }
+    if (!parse || !stats || maxCount == 0) return 0;
+    
+    uint16_t count = (parse->parserCount < maxCount) ? parse->parserCount : maxCount;
+    
+    for (uint16_t i = 0; i < count; i++) {
+        stats[i].protocolName = parse->parsers[i].name;
+        // Description is removed from the core library
+        stats[i].description = "-"; 
+        stats[i].messagesProcessed = parse->messagesProcessed[i];
+        stats[i].crcErrors = parse->crcErrors[i];
+        
+        uint32_t total = stats[i].messagesProcessed + stats[i].crcErrors;
+        stats[i].successRate = (total > 0) ? ((float)stats[i].messagesProcessed / total) * 100.0f : 100.0f;
+        stats[i].isActive = (parse->type == (MP_PROTOCOL_TYPE)i);
     }
+    
     return count;
 }
 
@@ -253,7 +209,7 @@ void mpPrintStats(const MP_PARSE_STATE *parse)
     mpSafePrintf(parse->printDebug, "协议切换次数: %u", parse->protocolSwitches);
     mpSafePrintf(parse->printDebug, "当前活动协议: %s", 
                  parse->type < MP_PROTOCOL_COUNT ? 
-                 mp_parserRegistry[parse->type].name : "无");
+                 parse->parsers[parse->type].name : "无");
     
     bool hasData = false;
     for (int i = 0; i < MP_PROTOCOL_COUNT; i++) {
@@ -264,7 +220,7 @@ void mpPrintStats(const MP_PARSE_STATE *parse)
             
             const char *activeMarker = (parse->type == (MP_PROTOCOL_TYPE)i) ? " [活动]" : "";
             mpSafePrintf(parse->printDebug, "%s%s: 成功=%u, 错误=%u, 成功率=%.1f%%",
-                mp_parserRegistry[i].name, activeMarker,
+                parse->parsers[i].name, activeMarker,
                 parse->messagesProcessed[i], parse->crcErrors[i], successRate);
             hasData = true;
         }
@@ -278,29 +234,21 @@ void mpPrintStats(const MP_PARSE_STATE *parse)
 
 void mpListSupportedProtocols(const MP_PARSE_STATE *parse)
 {
-    if (!parse || !parse->printDebug) return;
-    
-    mpSafePrintf(parse->printDebug, "=== 支持的协议列表 ===");
-    for (int i = 0; i < MP_PROTOCOL_COUNT; i++) {
-        char preambleStr[32] = {0};
-        int pos = 0;
-        for (int j = 0; j < mp_parserRegistry[i].preambleLength; j++) {
-            pos += snprintf(preambleStr + pos, sizeof(preambleStr) - pos, 
-                           "0x%02X ", mp_parserRegistry[i].preambleBytes[j]);
-        }
-        
-        mpSafePrintf(parse->printDebug, "%d. %s", i + 1, mp_parserRegistry[i].name);
-        mpSafePrintf(parse->printDebug, "   描述: %s", mp_parserRegistry[i].description);
-        mpSafePrintf(parse->printDebug, "   前导: %s", preambleStr);
+    if (!parse) return;
+
+    mpSafePrintf(parse->printDebug, "\n--- %s 支持的协议列表 ---", parse->parserName);
+    for (int i = 0; i < parse->parserCount; i++) {
+        mpSafePrintf(parse->printDebug, "  - %s", parse->parsers[i].name);
     }
-    mpSafePrintf(parse->printDebug, "===================");
+    mpSafePrintf(parse->printDebug, "-----------------------------------\n");
 }
 
 //----------------------------------------
-// 核心解析框架
+// 主状态机
 //----------------------------------------
 
-static bool mpFirstByte(MP_PARSE_STATE *parse, uint8_t data)
+// 主状态机 - 寻找前导字节
+static bool mpFindPreamble(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (!parse) return false;
 
@@ -314,8 +262,8 @@ static bool mpFirstByte(MP_PARSE_STATE *parse, uint8_t data)
     parse->totalBytes++;
 
     // 遍历所有注册的解析器
-    for (int index = 0; index < mp_parserCount; index++) {
-        if (mp_parserRegistry[index].preambleFunction(parse, data)) {
+    for (int index = 0; index < parse->parserCount; index++) {
+        if (parse->parsers[index].preambleFunction(parse, data)) {
             if (oldType != (MP_PROTOCOL_TYPE)index && oldType != MP_PROTOCOL_COUNT) {
                 parse->protocolSwitches++;
             }
@@ -325,7 +273,7 @@ static bool mpFirstByte(MP_PARSE_STATE *parse, uint8_t data)
     }
 
     // 未找到匹配的协议前导
-    parse->state = mpFirstByte;
+    parse->state = mpFindPreamble;
     return false;
 }
 
@@ -336,41 +284,43 @@ static bool mpFirstByte(MP_PARSE_STATE *parse, uint8_t data)
 bool mpInitParser(MP_PARSE_STATE *parse,
                   uint8_t *buffer,
                   uint16_t bufferLength,
+                  const MP_PARSER_INFO *userParsers,
+                  uint16_t userParserCount,
                   MP_EOM_CALLBACK eomCallback,
                   MP_BAD_CRC_CALLBACK badCrcCallback,
                   const char *parserName,
                   MP_PRINTF_CALLBACK printError,
                   MP_PRINTF_CALLBACK printDebug)
 {
-    if (!parse || !buffer || !eomCallback || bufferLength < MP_MINIMUM_BUFFER_LENGTH) {
+    // 1. 参数校验
+    if (!parse || !buffer || bufferLength < MP_MINIMUM_BUFFER_LENGTH || !eomCallback || !userParsers || userParserCount == 0) {
+        if (printError) {
+            printError("[MP] 初始化失败: 无效的参数\n");
+        }
         return false;
     }
 
-    // 初始化解析器状态
+    // 2. 清理状态结构体
     memset(parse, 0, sizeof(MP_PARSE_STATE));
-    
-    // 设置配置
-    parse->parsers = mp_parserRegistry;
-    parse->parserCount = mp_parserCount;
-    parse->parserName = parserName;
-    
-    // 设置回调
-    parse->eomCallback = eomCallback;
-    parse->badCrc = badCrcCallback;
-    parse->printError = printError;
-    parse->printDebug = printDebug;
-    
-    // 设置缓冲区
+
+    // 3. 设置用户提供的配置
     parse->buffer = buffer;
     parse->bufferLength = bufferLength;
-    
-    // 设置初始状态
-    parse->state = mpFirstByte;
-    parse->type = MP_PROTOCOL_COUNT;
-    
-    mpSafePrintf(printDebug, "消息解析器初始化完成 (版本: %s)", mpGetVersion());
-    mpSafePrintf(printDebug, "支持 %d 种协议，缓冲区大小: %d 字节", mp_parserCount, bufferLength);
-    
+    parse->eomCallback = eomCallback;
+    parse->badCrc = badCrcCallback;
+    parse->parserName = parserName ? parserName : "DefaultParser";
+    parse->printError = printError;
+    parse->printDebug = printDebug;
+    parse->parsers = userParsers;
+    parse->parserCount = userParserCount;
+
+    // 4. 设置初始状态
+    parse->state = mpFindPreamble;
+    parse->type = MP_PROTOCOL_COUNT; // 初始状态为未知
+
+    mpSafePrintf(parse->printDebug, "[MP] 解析器 '%s' 初始化成功，包含 %d 个协议\n",
+                 parse->parserName, parse->parserCount);
+
     return true;
 }
 
@@ -383,7 +333,7 @@ bool mpProcessByte(MP_PARSE_STATE *parse, uint8_t data)
         mpSafePrintf(parse->printError,
             "MP %s: 消息过长, 增加缓冲区大小 > %d",
             parse->parserName ? parse->parserName : "Unknown", parse->bufferLength);
-        return mpFirstByte(parse, data);
+        return mpFindPreamble(parse, data);
     }
 
     // 保存数据字节
@@ -397,25 +347,6 @@ bool mpProcessByte(MP_PARSE_STATE *parse, uint8_t data)
 
     // 调用状态处理函数
     return parse->state(parse, data);
-}
-
-uint16_t mpProcessBuffer(MP_PARSE_STATE *parse, uint8_t *data, uint16_t length)
-{
-    uint16_t processed = 0;
-
-    if (!parse || !data) return 0;
-
-    for (uint16_t i = 0; i < length; i++) {
-        if (mpProcessByte(parse, data[i])) {
-            processed++;
-        } else {
-            // 消息处理完成或发生错误
-            processed++;
-            // 继续处理剩余数据而不是中断
-        }
-    }
-
-    return processed;
 }
 
 MP_PROTOCOL_TYPE mpGetActiveProtocol(const MP_PARSE_STATE *parse)

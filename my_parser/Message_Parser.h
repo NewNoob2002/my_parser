@@ -79,9 +79,6 @@ typedef void (*MP_PRINTF_CALLBACK)(const char *format, ...);
 typedef struct _MP_PARSER_INFO {
     const char *name;                    // 解析器名称
     MP_PARSE_ROUTINE preambleFunction;  // 前导字节检测函数
-    uint8_t preambleBytes[4];           // 前导字节模式（最多4字节）
-    uint8_t preambleLength;             // 前导字节长度
-    const char *description;            // 协议描述
 } MP_PARSER_INFO;
 
 //----------------------------------------
@@ -242,6 +239,8 @@ const char* mpGetVersion(void);
  * @param parse 解析器状态结构体指针
  * @param buffer 消息缓冲区
  * @param bufferLength 缓冲区长度
+ * @param userParsers 用户提供的解析器信息表
+ * @param userParserCount 用户提供的解析器数量
  * @param eomCallback 消息结束回调函数
  * @param badCrcCallback CRC错误回调函数（可为NULL）
  * @param parserName 解析器名称
@@ -252,6 +251,8 @@ const char* mpGetVersion(void);
 bool mpInitParser(MP_PARSE_STATE *parse,
                   uint8_t *buffer,
                   uint16_t bufferLength,
+                  const MP_PARSER_INFO *userParsers,
+                  uint16_t userParserCount,
                   MP_EOM_CALLBACK eomCallback,
                   MP_BAD_CRC_CALLBACK badCrcCallback,
                   const char *parserName,
@@ -267,15 +268,6 @@ bool mpInitParser(MP_PARSE_STATE *parse,
 bool mpProcessByte(MP_PARSE_STATE *parse, uint8_t data);
 
 /**
- * @brief 批量处理数据缓冲区
- * @param parse 解析器状态结构体指针
- * @param data 数据缓冲区
- * @param length 数据长度
- * @return 已处理的字节数
- */
-uint16_t mpProcessBuffer(MP_PARSE_STATE *parse, uint8_t *data, uint16_t length);
-
-/**
  * @brief 获取当前活动的协议类型
  * @param parse 解析器状态结构体指针
  * @return 协议类型
@@ -284,10 +276,11 @@ MP_PROTOCOL_TYPE mpGetActiveProtocol(const MP_PARSE_STATE *parse);
 
 /**
  * @brief 获取协议名称
+ * @param parse 解析器状态结构体指针
  * @param protocolType 协议类型
  * @return 协议名称字符串
  */
-const char* mpGetProtocolName(MP_PROTOCOL_TYPE protocolType);
+const char* mpGetProtocolName(const MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolType);
 
 /**
  * @brief 获取协议描述

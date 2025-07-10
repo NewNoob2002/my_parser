@@ -86,18 +86,129 @@ my_parser/CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.s: cmake
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.s"
 	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/demo/message_parser_demo.c -o CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.s
 
+my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o: /Users/gtc/workspace/my_parser/my_parser/Message_Parser.c
+my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o -MF CMakeFiles/message_parser_demo.dir/Message_Parser.c.o.d -o CMakeFiles/message_parser_demo.dir/Message_Parser.c.o -c /Users/gtc/workspace/my_parser/my_parser/Message_Parser.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Message_Parser.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Message_Parser.c > CMakeFiles/message_parser_demo.dir/Message_Parser.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Message_Parser.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Message_Parser.c -o CMakeFiles/message_parser_demo.dir/Message_Parser.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_BT.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_BT.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_BT.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_BT.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_BT.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_BT.c > CMakeFiles/message_parser_demo.dir/Parse_BT.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_BT.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_BT.c -o CMakeFiles/message_parser_demo.dir/Parse_BT.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_NMEA.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_NMEA.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_NMEA.c > CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_NMEA.c -o CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_RTCM.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_RTCM.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_RTCM.c > CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_RTCM.c -o CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_UBLOX.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_UBLOX.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_UBLOX.c > CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_UBLOX.c -o CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Binary.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Binary.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Binary.c > CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Binary.c -o CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.s
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o: my_parser/CMakeFiles/message_parser_demo.dir/flags.make
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o: /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Hash.c
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o: my_parser/CMakeFiles/message_parser_demo.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o -MF CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o.d -o CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o -c /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Hash.c
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.i"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Hash.c > CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.i
+
+my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.s"
+	cd /Users/gtc/workspace/my_parser/build/my_parser && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/gtc/workspace/my_parser/my_parser/Parse_Unicore_Hash.c -o CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.s
+
 # Object files for target message_parser_demo
 message_parser_demo_OBJECTS = \
-"CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.o"
+"CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.o" \
+"CMakeFiles/message_parser_demo.dir/Message_Parser.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_BT.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o" \
+"CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o"
 
 # External object files for target message_parser_demo
 message_parser_demo_EXTERNAL_OBJECTS =
 
 bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o
+bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o
 bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/build.make
-bin/message_parser_demo: lib/libmessage_parser_lib.a
 bin/message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable ../bin/message_parser_demo"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C executable ../bin/message_parser_demo"
 	cd /Users/gtc/workspace/my_parser/build/my_parser && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/message_parser_demo.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

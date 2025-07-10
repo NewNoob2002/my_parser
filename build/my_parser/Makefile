@@ -117,20 +117,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-my_parser/CMakeFiles/message_parser_lib.dir/rule:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/message_parser_lib.dir/rule
-.PHONY : my_parser/CMakeFiles/message_parser_lib.dir/rule
-
-# Convenience name for target.
-message_parser_lib: my_parser/CMakeFiles/message_parser_lib.dir/rule
-.PHONY : message_parser_lib
-
-# fast build rule for target.
-message_parser_lib/fast:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/build
-.PHONY : message_parser_lib/fast
-
-# Convenience name for target.
 my_parser/CMakeFiles/my_parser_main.dir/rule:
 	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/my_parser_main.dir/rule
 .PHONY : my_parser/CMakeFiles/my_parser_main.dir/rule
@@ -177,7 +163,9 @@ Message_Parser.o: Message_Parser.c.o
 
 # target to build an object file
 Message_Parser.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Message_Parser.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Message_Parser.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Message_Parser.c.o
 .PHONY : Message_Parser.c.o
 
 Message_Parser.i: Message_Parser.c.i
@@ -185,7 +173,9 @@ Message_Parser.i: Message_Parser.c.i
 
 # target to preprocess a source file
 Message_Parser.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Message_Parser.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Message_Parser.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Message_Parser.c.i
 .PHONY : Message_Parser.c.i
 
 Message_Parser.s: Message_Parser.c.s
@@ -193,7 +183,9 @@ Message_Parser.s: Message_Parser.c.s
 
 # target to generate assembly for a file
 Message_Parser.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Message_Parser.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Message_Parser.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Message_Parser.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Message_Parser.c.s
 .PHONY : Message_Parser.c.s
 
 Parse_BT.o: Parse_BT.c.o
@@ -201,7 +193,9 @@ Parse_BT.o: Parse_BT.c.o
 
 # target to build an object file
 Parse_BT.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_BT.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_BT.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_BT.c.o
 .PHONY : Parse_BT.c.o
 
 Parse_BT.i: Parse_BT.c.i
@@ -209,7 +203,9 @@ Parse_BT.i: Parse_BT.c.i
 
 # target to preprocess a source file
 Parse_BT.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_BT.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_BT.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_BT.c.i
 .PHONY : Parse_BT.c.i
 
 Parse_BT.s: Parse_BT.c.s
@@ -217,7 +213,9 @@ Parse_BT.s: Parse_BT.c.s
 
 # target to generate assembly for a file
 Parse_BT.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_BT.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_BT.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_BT.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_BT.c.s
 .PHONY : Parse_BT.c.s
 
 Parse_NMEA.o: Parse_NMEA.c.o
@@ -225,7 +223,9 @@ Parse_NMEA.o: Parse_NMEA.c.o
 
 # target to build an object file
 Parse_NMEA.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_NMEA.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_NMEA.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_NMEA.c.o
 .PHONY : Parse_NMEA.c.o
 
 Parse_NMEA.i: Parse_NMEA.c.i
@@ -233,7 +233,9 @@ Parse_NMEA.i: Parse_NMEA.c.i
 
 # target to preprocess a source file
 Parse_NMEA.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_NMEA.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_NMEA.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_NMEA.c.i
 .PHONY : Parse_NMEA.c.i
 
 Parse_NMEA.s: Parse_NMEA.c.s
@@ -241,7 +243,9 @@ Parse_NMEA.s: Parse_NMEA.c.s
 
 # target to generate assembly for a file
 Parse_NMEA.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_NMEA.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_NMEA.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_NMEA.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_NMEA.c.s
 .PHONY : Parse_NMEA.c.s
 
 Parse_RTCM.o: Parse_RTCM.c.o
@@ -249,7 +253,9 @@ Parse_RTCM.o: Parse_RTCM.c.o
 
 # target to build an object file
 Parse_RTCM.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_RTCM.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_RTCM.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_RTCM.c.o
 .PHONY : Parse_RTCM.c.o
 
 Parse_RTCM.i: Parse_RTCM.c.i
@@ -257,7 +263,9 @@ Parse_RTCM.i: Parse_RTCM.c.i
 
 # target to preprocess a source file
 Parse_RTCM.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_RTCM.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_RTCM.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_RTCM.c.i
 .PHONY : Parse_RTCM.c.i
 
 Parse_RTCM.s: Parse_RTCM.c.s
@@ -265,7 +273,9 @@ Parse_RTCM.s: Parse_RTCM.c.s
 
 # target to generate assembly for a file
 Parse_RTCM.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_RTCM.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_RTCM.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_RTCM.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_RTCM.c.s
 .PHONY : Parse_RTCM.c.s
 
 Parse_UBLOX.o: Parse_UBLOX.c.o
@@ -273,7 +283,9 @@ Parse_UBLOX.o: Parse_UBLOX.c.o
 
 # target to build an object file
 Parse_UBLOX.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_UBLOX.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_UBLOX.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_UBLOX.c.o
 .PHONY : Parse_UBLOX.c.o
 
 Parse_UBLOX.i: Parse_UBLOX.c.i
@@ -281,7 +293,9 @@ Parse_UBLOX.i: Parse_UBLOX.c.i
 
 # target to preprocess a source file
 Parse_UBLOX.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_UBLOX.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_UBLOX.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_UBLOX.c.i
 .PHONY : Parse_UBLOX.c.i
 
 Parse_UBLOX.s: Parse_UBLOX.c.s
@@ -289,7 +303,9 @@ Parse_UBLOX.s: Parse_UBLOX.c.s
 
 # target to generate assembly for a file
 Parse_UBLOX.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_UBLOX.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_UBLOX.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_UBLOX.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_UBLOX.c.s
 .PHONY : Parse_UBLOX.c.s
 
 Parse_Unicore_Binary.o: Parse_Unicore_Binary.c.o
@@ -297,7 +313,9 @@ Parse_Unicore_Binary.o: Parse_Unicore_Binary.c.o
 
 # target to build an object file
 Parse_Unicore_Binary.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Binary.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Binary.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Binary.c.o
 .PHONY : Parse_Unicore_Binary.c.o
 
 Parse_Unicore_Binary.i: Parse_Unicore_Binary.c.i
@@ -305,7 +323,9 @@ Parse_Unicore_Binary.i: Parse_Unicore_Binary.c.i
 
 # target to preprocess a source file
 Parse_Unicore_Binary.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Binary.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Binary.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Binary.c.i
 .PHONY : Parse_Unicore_Binary.c.i
 
 Parse_Unicore_Binary.s: Parse_Unicore_Binary.c.s
@@ -313,7 +333,9 @@ Parse_Unicore_Binary.s: Parse_Unicore_Binary.c.s
 
 # target to generate assembly for a file
 Parse_Unicore_Binary.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Binary.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Binary.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Binary.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Binary.c.s
 .PHONY : Parse_Unicore_Binary.c.s
 
 Parse_Unicore_Hash.o: Parse_Unicore_Hash.c.o
@@ -321,7 +343,9 @@ Parse_Unicore_Hash.o: Parse_Unicore_Hash.c.o
 
 # target to build an object file
 Parse_Unicore_Hash.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Hash.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Hash.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.o
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Hash.c.o
 .PHONY : Parse_Unicore_Hash.c.o
 
 Parse_Unicore_Hash.i: Parse_Unicore_Hash.c.i
@@ -329,7 +353,9 @@ Parse_Unicore_Hash.i: Parse_Unicore_Hash.c.i
 
 # target to preprocess a source file
 Parse_Unicore_Hash.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Hash.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Hash.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.i
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Hash.c.i
 .PHONY : Parse_Unicore_Hash.c.i
 
 Parse_Unicore_Hash.s: Parse_Unicore_Hash.c.s
@@ -337,7 +363,9 @@ Parse_Unicore_Hash.s: Parse_Unicore_Hash.c.s
 
 # target to generate assembly for a file
 Parse_Unicore_Hash.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Hash.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/Parse_Unicore_Hash.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/Parse_Unicore_Hash.c.s
+	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/Parse_Unicore_Hash.c.s
 .PHONY : Parse_Unicore_Hash.c.s
 
 demo/message_parser_demo.o: demo/message_parser_demo.c.o
@@ -422,7 +450,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... message_parser_demo"
 	@echo "... message_parser_example"
-	@echo "... message_parser_lib"
 	@echo "... my_parser_main"
 	@echo "... Message_Parser.o"
 	@echo "... Message_Parser.i"
