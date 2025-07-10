@@ -32,7 +32,7 @@
 // 外部CRC32计算函数声明
 //----------------------------------------
 
-extern uint32_t mpComputeCrc32(MP_PARSE_STATE *parse, uint8_t data);
+extern uint32_t msgp_computeCrc32(MP_PARSE_STATE *parse, uint8_t data);
 
 //----------------------------------------
 // 内部状态函数前向声明
@@ -95,26 +95,18 @@ static bool mpUnicoreBinReadCrc(MP_PARSE_STATE *parse, uint8_t data)
     
     // 验证CRC
     if (crcRead == crcComputed) {
-        // CRC正确，消息解析成功
-        parse->messagesProcessed[MP_PROTOCOL_UNICORE_BIN]++;
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_UNICORE_BIN);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
         
         UNICORE_BIN_HEADER *header = (UNICORE_BIN_HEADER *)parse->buffer;
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: Unicore二进制消息解析成功, 类型=0x%02X, ID=%d, 长度=%d",
             header->messageType, header->messageId, header->messageLength);
     } else {
-        // CRC错误
-        parse->crcErrors[MP_PROTOCOL_UNICORE_BIN]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s Unicore二进制CRC错误, 接收: %02X %02X %02X %02X, 计算: %02X %02X %02X %02X",
-            parse->parserName ? parse->parserName : "Unknown",
-            parse->buffer[parse->length - 4], parse->buffer[parse->length - 3],
-            parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
-            crcComputed & 0xff, (crcComputed >> 8) & 0xff,
-            (crcComputed >> 16) & 0xff, (crcComputed >> 24) & 0xff);
+        if (parse->badCrc) {
+            parse->badCrc(parse);
+        }
     }
     
     return false; // 消息处理完成
@@ -162,7 +154,7 @@ static bool mpUnicoreBinReadHeader(MP_PARSE_STATE *parse, uint8_t data)
         
         // 验证头部长度
         if (header->headerLength != 0x1C) {
-            mpSafePrintf(parse->printDebug,
+            msgp_util_safePrintf(parse->printDebug,
                 "MP: Unicore二进制无效头部长度: 0x%02X", header->headerLength);
             return false;
         }
@@ -170,7 +162,7 @@ static bool mpUnicoreBinReadHeader(MP_PARSE_STATE *parse, uint8_t data)
         scratchPad->unicore.messageLength = header->messageLength;
         scratchPad->unicore.bytesRemaining = header->messageLength;
         
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: Unicore二进制头部解析完成, 消息ID=%d, 长度=%d",
             header->messageId, header->messageLength);
         
@@ -197,7 +189,7 @@ static bool mpUnicoreBinReadHeader(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpUnicoreBinSync3(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (data != 0x12) {
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: Unicore二进制第三个同步字节错误: 0x%02X", data);
         return false;
     }
@@ -216,7 +208,7 @@ static bool mpUnicoreBinSync3(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpUnicoreBinSync2(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (data != 0x44) {
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: Unicore二进制第二个同步字节错误: 0x%02X", data);
         return false;
     }
@@ -236,20 +228,18 @@ static bool mpUnicoreBinSync2(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到Unicore二进制协议前导，false=不是Unicore二进制协议
  */
-bool mpUnicoreBinPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_unicore_bin_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测第一个同步字节 (0xAA)
-    if (data != 0xAA) {
-        return false;
-    }
+    if (data != 0xAA) return false;
 
-    // 初始化Unicore二进制解析状态
-    parse->crc = 0xFFFFFFFF;          // CRC32初始值
-    parse->computeCrc = mpComputeCrc32; // 设置CRC计算函数
-    parse->crc = parse->computeCrc(parse, data); // 计算第一个字节的CRC
-    parse->state = mpUnicoreBinSync2; // 设置下一个状态
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->crc = 0xFFFFFFFF;
+    parse->computeCrc = msgp_computeCrc32;
+    parse->crc = parse->computeCrc(parse, data);
+    parse->state = mpUnicoreBinSync2;
     
-    mpSafePrintf(parse->printDebug, 
+    msgp_util_safePrintf(parse->printDebug, 
         "MP: 检测到Unicore二进制协议前导字节 0x%02X", data);
     
     return true;
@@ -259,12 +249,29 @@ bool mpUnicoreBinPreamble(MP_PARSE_STATE *parse, uint8_t data)
 // Unicore二进制协议辅助函数
 //----------------------------------------
 
-/**
- * @brief 获取Unicore二进制消息类型名称
- * @param messageId 消息ID
- * @return 消息类型名称字符串
- */
-const char* mpUnicoreBinGetMessageName(uint16_t messageId)
+uint16_t msgp_unicore_bin_getMessageId(const MP_PARSE_STATE *parse)
+{
+    if (!parse || parse->length < sizeof(UNICORE_BIN_HEADER)) return 0;
+    UNICORE_BIN_HEADER *header = (UNICORE_BIN_HEADER *)parse->buffer;
+    return header->messageId;
+}
+
+const uint8_t* msgp_unicore_bin_getPayload(const MP_PARSE_STATE *parse, uint16_t *length)
+{
+    if (!parse || !length || parse->length < sizeof(UNICORE_BIN_HEADER) + 4) {
+        if (length) *length = 0;
+        return NULL;
+    }
+    UNICORE_BIN_HEADER *header = (UNICORE_BIN_HEADER *)parse->buffer;
+    if ( (sizeof(UNICORE_BIN_HEADER) + header->messageLength + 4) != parse->length) {
+        *length = 0;
+        return NULL;
+    }
+    *length = header->messageLength;
+    return parse->buffer + sizeof(UNICORE_BIN_HEADER);
+}
+
+const char* msgp_unicore_bin_getMessageName(uint16_t messageId)
 {
     // 常见的Unicore二进制消息类型
     switch (messageId) {
@@ -359,37 +366,6 @@ bool mpUnicoreBinVerifyMessage(const uint8_t *buffer, uint16_t length)
     
     // 这里可以添加完整的CRC32验证逻辑
     // 为简化示例，这里只做长度验证
-    
-    return true;
-}
-
-/**
- * @brief 获取Unicore二进制消息负载数据
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param payload 输出的负载数据指针
- * @param payloadLength 输出的负载长度
- * @return true=成功，false=失败
- */
-bool mpUnicoreBinGetPayload(const uint8_t *buffer, uint16_t length,
-                           const uint8_t **payload, uint16_t *payloadLength)
-{
-    if (!buffer || !payload || !payloadLength) {
-        return false;
-    }
-    
-    UNICORE_BIN_HEADER *header;
-    if (!mpUnicoreBinGetHeaderInfo(buffer, length, &header)) {
-        return false;
-    }
-    
-    // 验证消息长度
-    if (length < (sizeof(UNICORE_BIN_HEADER) + header->messageLength + 4)) {
-        return false;
-    }
-    
-    *payload = buffer + sizeof(UNICORE_BIN_HEADER);
-    *payloadLength = header->messageLength;
     
     return true;
 }

@@ -57,8 +57,8 @@ static void mpNmeaValidateChecksum(MP_PARSE_STATE *parse)
     MP_SCRATCH_PAD *scratchPad = &parse->scratchPad;
 
     // 转换校验和字符为二进制值
-    checksum = mpAsciiToNibble(parse->buffer[parse->length - 2]) << 4;
-    checksum |= mpAsciiToNibble(parse->buffer[parse->length - 1]);
+    checksum = msgp_util_asciiToNibble(parse->buffer[parse->length - 2]) << 4;
+    checksum |= msgp_util_asciiToNibble(parse->buffer[parse->length - 1]);
 
     // 验证校验和
     bool checksum_ok = (checksum == (int)(parse->crc & 0xFF));
@@ -70,29 +70,13 @@ static void mpNmeaValidateChecksum(MP_PARSE_STATE *parse)
         parse->buffer[parse->length] = 0; // 零终止符
 
         // 处理NMEA语句
-        parse->messagesProcessed[MP_PROTOCOL_NMEA]++;
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_NMEA);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
-        
-        mpSafePrintf(parse->printDebug,
-            "MP: NMEA语句解析成功: %s (%d字节)",
-            scratchPad->nmea.info.sentenceName, parse->length);
     } else {
         // 校验和错误
-        parse->crcErrors[MP_PROTOCOL_NMEA]++;
-        bool reset = true; // 默认重置
         if (parse->badCrc) {
-            reset = parse->badCrc(parse); // 让用户决定是否重置
-        }
-        
-        if (!reset) { // 如果用户决定不重置（例如，为了调试），则打印更详细的信息
-             mpSafePrintf(parse->printDebug,
-                "MP: %s NMEA %s, 校验和错误, 接收: %c%c, 计算: %02X (未重置)",
-                parse->parserName ? parse->parserName : "Unknown",
-                scratchPad->nmea.info.sentenceName,
-                parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
-                (uint8_t)(parse->crc & 0xFF));
+            parse->badCrc(parse);
         }
     }
 }
@@ -125,13 +109,13 @@ static bool mpNmeaLineTermination(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpNmeaChecksumByte2(MP_PARSE_STATE *parse, uint8_t data)
 {
     // 验证第二个校验和字符是否为有效的十六进制字符
-    if (mpAsciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
+    if (msgp_util_asciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
         parse->state = mpNmeaLineTermination;
         return true;
     }
 
     // 无效的校验和字符
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: %s NMEA无效的第二个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
     parse->state = NULL;
@@ -147,13 +131,13 @@ static bool mpNmeaChecksumByte2(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpNmeaChecksumByte1(MP_PARSE_STATE *parse, uint8_t data)
 {
     // 验证第一个校验和字符是否为有效的十六进制字符
-    if (mpAsciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
+    if (msgp_util_asciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
         parse->state = mpNmeaChecksumByte2;
         return true;
     }
 
     // 无效的校验和字符
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: %s NMEA无效的第一个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
     parse->state = NULL;
@@ -178,7 +162,7 @@ static bool mpNmeaFindAsterisk(MP_PARSE_STATE *parse, uint8_t data)
         // 验证缓冲区空间是否足够
         if ((uint32_t)(parse->length + NMEA_BUFFER_OVERHEAD) > parse->bufferLength) {
             // 语句过长
-            mpSafePrintf(parse->printDebug,
+            msgp_util_safePrintf(parse->printDebug,
                 "MP: %s NMEA语句过长, 增加缓冲区大小 > %d",
                 parse->parserName ? parse->parserName : "Unknown",
                 parse->bufferLength);
@@ -218,7 +202,7 @@ static bool mpNmeaFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
         if (scratchPad->nmea.info.sentenceNameLength < sizeof(scratchPad->nmea.info.sentenceName) -1) {
              scratchPad->nmea.info.sentenceName[scratchPad->nmea.info.sentenceNameLength++] = data;
         } else {
-            mpSafePrintf(parse->printDebug, "MP: NMEA语句名称过长");
+            msgp_util_safePrintf(parse->printDebug, "MP: NMEA语句名称过长");
             parse->state = NULL;
             return false;
         }
@@ -236,21 +220,18 @@ static bool mpNmeaFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到NMEA协议前导，false=不是NMEA协议
  */
-bool mpNmeaPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_nmea_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测NMEA前导字符 ($)
-    if (data != '$') {
-        return false;
-    }
-    
-    // 初始化NMEA解析状态
-    MP_SCRATCH_PAD *scratchPad = &parse->scratchPad;
-    scratchPad->nmea.info.sentenceNameLength = 0;
-    parse->crc = 0;              // NMEA校验和从0开始
-    parse->computeCrc = NULL;    // NMEA使用简单异或校验
+    if (data != '$') return false;
+
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->scratchPad.nmea.info.sentenceNameLength = 0;
+    parse->crc = 0;
+    parse->computeCrc = NULL;
     parse->state = mpNmeaFindFirstComma;
     
-    mpSafePrintf(parse->printDebug, 
+    msgp_util_safePrintf(parse->printDebug, 
         "MP: 检测到NMEA协议前导字符 '$'");
     
     return true;
@@ -265,7 +246,7 @@ bool mpNmeaPreamble(MP_PARSE_STATE *parse, uint8_t data)
  * @param parse 解析器状态指针
  * @return NMEA语句名称字符串
  */
-const char* mpNmeaGetSentenceName(const MP_PARSE_STATE *parse)
+const char* msgp_nmea_getSentenceName(const MP_PARSE_STATE *parse)
 {
     if (!parse) return "Unknown";
     
@@ -275,48 +256,48 @@ const char* mpNmeaGetSentenceName(const MP_PARSE_STATE *parse)
 
 /**
  * @brief 解析NMEA语句获取字段数据
- * @param sentence NMEA语句字符串
+ * @param parse 解析器状态指针
  * @param fields 输出字段数组
  * @param maxFields 最大字段数量
  * @return 实际解析的字段数量
  */
-int mpNmeaParseFields(const char *sentence, char fields[][32], int maxFields)
+int msgp_nmea_parseFields(const MP_PARSE_STATE *parse, char fields[][32], int maxFields)
 {
-    if (!sentence || !fields || maxFields <= 0) {
-        return 0;
-    }
+    if (!parse || !fields || maxFields == 0) return 0;
     
+    // 我们需要一个以null结尾的字符串
+    char sentence[MP_MINIMUM_BUFFER_LENGTH];
+    uint16_t len = (parse->length < sizeof(sentence) -1) ? parse->length : sizeof(sentence) - 1;
+    memcpy(sentence, parse->buffer, len);
+    sentence[len] = '\0';
+
     int fieldCount = 0;
-    int fieldPos = 0;
-    int sentencePos = 0;
+    char *p = sentence;
     
-    // 跳过前导 '$' 和语句名称直到第一个逗号
-    while (sentence[sentencePos] && sentence[sentencePos] != ',') {
-        sentencePos++;
-    }
-    if (sentence[sentencePos] == ',') {
-        sentencePos++; // 跳过逗号
-    }
+    // 跳过 '$'
+    if (*p == '$') p++;
     
-    // 解析字段
-    while (sentence[sentencePos] && sentence[sentencePos] != '*' && fieldCount < maxFields) {
-        if (sentence[sentencePos] == ',') {
-            // 字段结束
-            fields[fieldCount][fieldPos] = '\0';
+    fields[fieldCount][0] = '\0';
+    int field_char_count = 0;
+    
+    while(*p && *p != '*' && fieldCount < maxFields) {
+        if (*p == ',') {
+            fields[fieldCount][field_char_count] = '\0';
             fieldCount++;
-            fieldPos = 0;
+            if(fieldCount < maxFields) {
+                fields[fieldCount][0] = '\0';
+                field_char_count = 0;
+            }
         } else {
-            // 添加字符到当前字段
-            if (fieldPos < 31) { // 预留一个字符给 '\0'
-                fields[fieldCount][fieldPos++] = sentence[sentencePos];
+            if (field_char_count < 31) {
+                fields[fieldCount][field_char_count++] = *p;
             }
         }
-        sentencePos++;
+        p++;
     }
     
-    // 处理最后一个字段
-    if (fieldPos > 0 && fieldCount < maxFields) {
-        fields[fieldCount][fieldPos] = '\0';
+    if (field_char_count > 0) {
+        fields[fieldCount][field_char_count] = '\0';
         fieldCount++;
     }
     
@@ -324,60 +305,13 @@ int mpNmeaParseFields(const char *sentence, char fields[][32], int maxFields)
 }
 
 /**
- * @brief 验证NMEA语句格式
- * @param sentence NMEA语句字符串
- * @return true=格式正确，false=格式错误
- */
-bool mpNmeaValidateSentence(const char *sentence)
-{
-    if (!sentence || sentence[0] != '$') {
-        return false;
-    }
-    
-    int len = strlen(sentence);
-    if (len < 8) { // 最小长度: $XXXXX*XX
-        return false;
-    }
-    
-    // 查找星号位置
-    int asteriskPos = -1;
-    for (int i = 1; i < len; i++) {
-        if (sentence[i] == '*') {
-            asteriskPos = i;
-            break;
-        }
-    }
-    
-    if (asteriskPos == -1 || asteriskPos >= (len - 2)) {
-        return false; // 没有找到星号或校验和不完整
-    }
-    
-    // 验证校验和字符是否为十六进制
-    if (mpAsciiToNibble(sentence[asteriskPos + 1]) < 0 || 
-        mpAsciiToNibble(sentence[asteriskPos + 2]) < 0) {
-        return false;
-    }
-    
-    // 计算并验证校验和
-    uint8_t calculatedChecksum = 0;
-    for (int i = 1; i < asteriskPos; i++) {
-        calculatedChecksum ^= sentence[i];
-    }
-    
-    int receivedChecksum = (mpAsciiToNibble(sentence[asteriskPos + 1]) << 4) | 
-                          mpAsciiToNibble(sentence[asteriskPos + 2]);
-    
-    return (calculatedChecksum == receivedChecksum);
-}
-
-/**
  * @brief 识别NMEA语句类型
  * @param sentenceName NMEA语句名称
  * @return 语句类型描述字符串
  */
-const char* mpNmeaGetSentenceType(const char *sentenceName)
+const char* msgp_nmea_getSentenceType(const char *sentenceName)
 {
-    if (!sentenceName) return "Unknown";
+    if (!sentenceName) return "未知";
     
     // 常见的NMEA语句类型
     if (strncmp(sentenceName, "GPGGA", 5) == 0) {

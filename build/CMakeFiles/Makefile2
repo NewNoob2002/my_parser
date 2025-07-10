@@ -84,17 +84,11 @@ clean: my_parser/clean
 # Recursive "all" directory target.
 my_parser/all: my_parser/CMakeFiles/message_parser_lib.dir/all
 my_parser/all: my_parser/CMakeFiles/my_parser_main.dir/all
-my_parser/all: my_parser/CMakeFiles/message_parser_demo.dir/all
-my_parser/all: my_parser/CMakeFiles/message_parser_example.dir/all
-my_parser/all: my_parser/CMakeFiles/robust_parser_demo.dir/all
 .PHONY : my_parser/all
 
 # Recursive "codegen" directory target.
 my_parser/codegen: my_parser/CMakeFiles/message_parser_lib.dir/codegen
 my_parser/codegen: my_parser/CMakeFiles/my_parser_main.dir/codegen
-my_parser/codegen: my_parser/CMakeFiles/message_parser_demo.dir/codegen
-my_parser/codegen: my_parser/CMakeFiles/message_parser_example.dir/codegen
-my_parser/codegen: my_parser/CMakeFiles/robust_parser_demo.dir/codegen
 .PHONY : my_parser/codegen
 
 # Recursive "preinstall" directory target.
@@ -104,9 +98,6 @@ my_parser/preinstall:
 # Recursive "clean" directory target.
 my_parser/clean: my_parser/CMakeFiles/message_parser_lib.dir/clean
 my_parser/clean: my_parser/CMakeFiles/my_parser_main.dir/clean
-my_parser/clean: my_parser/CMakeFiles/message_parser_demo.dir/clean
-my_parser/clean: my_parser/CMakeFiles/message_parser_example.dir/clean
-my_parser/clean: my_parser/CMakeFiles/robust_parser_demo.dir/clean
 .PHONY : my_parser/clean
 
 #=============================================================================
@@ -116,7 +107,7 @@ my_parser/clean: my_parser/CMakeFiles/robust_parser_demo.dir/clean
 my_parser/CMakeFiles/message_parser_lib.dir/all:
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/depend
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=5,6,7,8,9,10,11,12 "Built target message_parser_lib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target message_parser_lib"
 .PHONY : my_parser/CMakeFiles/message_parser_lib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -133,7 +124,7 @@ message_parser_lib: my_parser/CMakeFiles/message_parser_lib.dir/rule
 # codegen rule for target.
 my_parser/CMakeFiles/message_parser_lib.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=5,6,7,8,9,10,11,12 "Finished codegen for target message_parser_lib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Finished codegen for target message_parser_lib"
 .PHONY : my_parser/CMakeFiles/message_parser_lib.dir/codegen
 
 # clean rule for target.
@@ -148,7 +139,7 @@ my_parser/CMakeFiles/message_parser_lib.dir/clean:
 my_parser/CMakeFiles/my_parser_main.dir/all: my_parser/CMakeFiles/message_parser_lib.dir/all
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/depend
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=13,14 "Built target my_parser_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=9,10 "Built target my_parser_main"
 .PHONY : my_parser/CMakeFiles/my_parser_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -165,109 +156,13 @@ my_parser_main: my_parser/CMakeFiles/my_parser_main.dir/rule
 # codegen rule for target.
 my_parser/CMakeFiles/my_parser_main.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=13,14 "Finished codegen for target my_parser_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=9,10 "Finished codegen for target my_parser_main"
 .PHONY : my_parser/CMakeFiles/my_parser_main.dir/codegen
 
 # clean rule for target.
 my_parser/CMakeFiles/my_parser_main.dir/clean:
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/clean
 .PHONY : my_parser/CMakeFiles/my_parser_main.dir/clean
-
-#=============================================================================
-# Target rules for target my_parser/CMakeFiles/message_parser_demo.dir
-
-# All Build rule for target.
-my_parser/CMakeFiles/message_parser_demo.dir/all: my_parser/CMakeFiles/message_parser_lib.dir/all
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/depend
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=1,2 "Built target message_parser_demo"
-.PHONY : my_parser/CMakeFiles/message_parser_demo.dir/all
-
-# Build rule for subdir invocation for target.
-my_parser/CMakeFiles/message_parser_demo.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 10
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/message_parser_demo.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 0
-.PHONY : my_parser/CMakeFiles/message_parser_demo.dir/rule
-
-# Convenience name for target.
-message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/rule
-.PHONY : message_parser_demo
-
-# codegen rule for target.
-my_parser/CMakeFiles/message_parser_demo.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=1,2 "Finished codegen for target message_parser_demo"
-.PHONY : my_parser/CMakeFiles/message_parser_demo.dir/codegen
-
-# clean rule for target.
-my_parser/CMakeFiles/message_parser_demo.dir/clean:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/clean
-.PHONY : my_parser/CMakeFiles/message_parser_demo.dir/clean
-
-#=============================================================================
-# Target rules for target my_parser/CMakeFiles/message_parser_example.dir
-
-# All Build rule for target.
-my_parser/CMakeFiles/message_parser_example.dir/all: my_parser/CMakeFiles/message_parser_lib.dir/all
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/depend
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=3,4 "Built target message_parser_example"
-.PHONY : my_parser/CMakeFiles/message_parser_example.dir/all
-
-# Build rule for subdir invocation for target.
-my_parser/CMakeFiles/message_parser_example.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 10
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/message_parser_example.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 0
-.PHONY : my_parser/CMakeFiles/message_parser_example.dir/rule
-
-# Convenience name for target.
-message_parser_example: my_parser/CMakeFiles/message_parser_example.dir/rule
-.PHONY : message_parser_example
-
-# codegen rule for target.
-my_parser/CMakeFiles/message_parser_example.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=3,4 "Finished codegen for target message_parser_example"
-.PHONY : my_parser/CMakeFiles/message_parser_example.dir/codegen
-
-# clean rule for target.
-my_parser/CMakeFiles/message_parser_example.dir/clean:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/clean
-.PHONY : my_parser/CMakeFiles/message_parser_example.dir/clean
-
-#=============================================================================
-# Target rules for target my_parser/CMakeFiles/robust_parser_demo.dir
-
-# All Build rule for target.
-my_parser/CMakeFiles/robust_parser_demo.dir/all: my_parser/CMakeFiles/message_parser_lib.dir/all
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/depend
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=15,16 "Built target robust_parser_demo"
-.PHONY : my_parser/CMakeFiles/robust_parser_demo.dir/all
-
-# Build rule for subdir invocation for target.
-my_parser/CMakeFiles/robust_parser_demo.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 10
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/robust_parser_demo.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/gtc/workspace/my_parser/build/CMakeFiles 0
-.PHONY : my_parser/CMakeFiles/robust_parser_demo.dir/rule
-
-# Convenience name for target.
-robust_parser_demo: my_parser/CMakeFiles/robust_parser_demo.dir/rule
-.PHONY : robust_parser_demo
-
-# codegen rule for target.
-my_parser/CMakeFiles/robust_parser_demo.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/gtc/workspace/my_parser/build/CMakeFiles --progress-num=15,16 "Finished codegen for target robust_parser_demo"
-.PHONY : my_parser/CMakeFiles/robust_parser_demo.dir/codegen
-
-# clean rule for target.
-my_parser/CMakeFiles/robust_parser_demo.dir/clean:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/clean
-.PHONY : my_parser/CMakeFiles/robust_parser_demo.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -43,20 +43,6 @@ extern "C" {
 typedef struct _MP_PARSE_STATE MP_PARSE_STATE;
 
 //----------------------------------------
-// 协议类型枚举
-//----------------------------------------
-
-typedef enum {
-    MP_PROTOCOL_BT = 0,          // 自定义/SEMP协议
-    MP_PROTOCOL_NMEA,            // NMEA GPS协议
-    MP_PROTOCOL_UBLOX,           // u-blox GPS协议
-    MP_PROTOCOL_RTCM,            // RTCM差分GPS协议
-    MP_PROTOCOL_UNICORE_BIN,     // Unicore二进制协议
-    MP_PROTOCOL_UNICORE_HASH,    // Unicore_Hash协议
-    MP_PROTOCOL_COUNT            // 协议总数
-} MP_PROTOCOL_TYPE;
-
-//----------------------------------------
 // 回调函数类型定义
 //----------------------------------------
 
@@ -64,7 +50,7 @@ typedef enum {
 typedef bool (*MP_PARSE_ROUTINE)(MP_PARSE_STATE *parse, uint8_t data);
 
 // 消息结束回调
-typedef void (*MP_EOM_CALLBACK)(MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolType);
+typedef void (*MP_EOM_CALLBACK)(MP_PARSE_STATE *parse, uint16_t protocolIndex);
 
 // CRC错误回调
 typedef bool (*MP_BAD_CRC_CALLBACK)(MP_PARSE_STATE *parse);
@@ -190,7 +176,7 @@ typedef struct _MP_PARSE_STATE {
     
     // 状态管理
     MP_PARSE_ROUTINE state;               // 当前状态函数
-    MP_PROTOCOL_TYPE type;                // 当前协议类型
+    uint16_t protocolIndex;               // 当前协议索引
     
     // CRC计算
     uint32_t (*computeCrc)(MP_PARSE_STATE *parse, uint8_t data); // CRC计算函数
@@ -204,25 +190,7 @@ typedef struct _MP_PARSE_STATE {
     // 临时数据区
     MP_SCRATCH_PAD scratchPad;            // 协议特定数据区
     
-    // 统计信息
-    uint32_t messagesProcessed[MP_PROTOCOL_COUNT]; // 每种协议处理的消息数
-    uint32_t crcErrors[MP_PROTOCOL_COUNT];         // 每种协议的CRC错误数
-    uint32_t totalBytes;                           // 总处理字节数
-    uint32_t protocolSwitches;                     // 协议切换次数
 } MP_PARSE_STATE;
-
-//----------------------------------------
-// 协议统计信息
-//----------------------------------------
-
-typedef struct _MP_PROTOCOL_STATS {
-    const char *protocolName;
-    const char *description;
-    uint32_t messagesProcessed;
-    uint32_t crcErrors;
-    float successRate;
-    bool isActive;
-} MP_PROTOCOL_STATS;
 
 //----------------------------------------
 // 主要API函数声明
@@ -232,7 +200,7 @@ typedef struct _MP_PROTOCOL_STATS {
  * @brief 获取解析器版本信息
  * @return 版本字符串
  */
-const char* mpGetVersion(void);
+const char* msgp_getVersion(void);
 
 /**
  * @brief 初始化消息解析器
@@ -248,7 +216,7 @@ const char* mpGetVersion(void);
  * @param printDebug 调试输出回调（可为NULL）
  * @return true=初始化成功，false=失败
  */
-bool mpInitParser(MP_PARSE_STATE *parse,
+bool msgp_init(MP_PARSE_STATE *parse,
                   uint8_t *buffer,
                   uint16_t bufferLength,
                   const MP_PARSER_INFO *userParsers,
@@ -265,14 +233,14 @@ bool mpInitParser(MP_PARSE_STATE *parse,
  * @param data 接收到的字节
  * @return true=继续接收，false=消息处理完成或错误
  */
-bool mpProcessByte(MP_PARSE_STATE *parse, uint8_t data);
+bool msgp_processByte(MP_PARSE_STATE *parse, uint8_t data);
 
 /**
  * @brief 获取当前活动的协议类型
  * @param parse 解析器状态结构体指针
  * @return 协议类型
  */
-MP_PROTOCOL_TYPE mpGetActiveProtocol(const MP_PARSE_STATE *parse);
+uint16_t msgp_getActiveProtocol(const MP_PARSE_STATE *parse);
 
 /**
  * @brief 获取协议名称
@@ -280,93 +248,58 @@ MP_PROTOCOL_TYPE mpGetActiveProtocol(const MP_PARSE_STATE *parse);
  * @param protocolType 协议类型
  * @return 协议名称字符串
  */
-const char* mpGetProtocolName(const MP_PARSE_STATE *parse, MP_PROTOCOL_TYPE protocolType);
+const char* msgp_getProtocolName(const MP_PARSE_STATE *parse, uint16_t protocolIndex);
 
 /**
  * @brief 获取协议描述
  * @param protocolType 协议类型
  * @return 协议描述字符串
  */
-const char* mpGetProtocolDescription(MP_PROTOCOL_TYPE protocolType);
-
-/**
- * @brief 获取协议统计信息
- * @param parse 解析器状态结构体指针
- * @param stats 统计信息输出数组
- * @param maxCount 数组最大长度
- * @return 实际返回的统计信息数量
- */
-uint16_t mpGetProtocolStats(const MP_PARSE_STATE *parse, 
-                           MP_PROTOCOL_STATS *stats, 
-                           uint16_t maxCount);
-
-/**
- * @brief 重置统计信息
- * @param parse 解析器状态结构体指针
- */
-void mpResetStats(MP_PARSE_STATE *parse);
-
-/**
- * @brief 打印协议统计信息
- * @param parse 解析器状态结构体指针
- */
-void mpPrintStats(const MP_PARSE_STATE *parse);
-
-/**
- * @brief 列出所有支持的协议
- * @param parse 解析器状态结构体指针
- */
-void mpListSupportedProtocols(const MP_PARSE_STATE *parse);
+const char* msgp_getProtocolDescription(uint16_t protocolIndex);
 
 //----------------------------------------
 // 各协议解析器前导函数声明（在各自的文件中实现）
 //----------------------------------------
 
-bool mpBtPreamble(MP_PARSE_STATE *parse, uint8_t data);          // Parse_BT.c
-bool mpNmeaPreamble(MP_PARSE_STATE *parse, uint8_t data);        // Parse_NMEA.c
-bool mpUbloxPreamble(MP_PARSE_STATE *parse, uint8_t data);       // Parse_UBLOX.c
-bool mpRtcmPreamble(MP_PARSE_STATE *parse, uint8_t data);        // Parse_RTCM.c
-bool mpUnicoreBinPreamble(MP_PARSE_STATE *parse, uint8_t data);  // Parse_Unicore_Binary.c
-bool mpUnicoreHashPreamble(MP_PARSE_STATE *parse, uint8_t data); // Parse_Unicore_Hash.c
+bool msgp_bt_preamble(MP_PARSE_STATE *parse, uint8_t data);          // Parse_BT.c
+bool msgp_nmea_preamble(MP_PARSE_STATE *parse, uint8_t data);        // Parse_NMEA.c
+bool msgp_ublox_preamble(MP_PARSE_STATE *parse, uint8_t data);       // Parse_UBLOX.c
+bool msgp_rtcm_preamble(MP_PARSE_STATE *parse, uint8_t data);        // Parse_RTCM.c
+bool msgp_unicore_bin_preamble(MP_PARSE_STATE *parse, uint8_t data);  // Parse_Unicore_Binary.c
+bool msgp_unicore_hash_preamble(MP_PARSE_STATE *parse, uint8_t data); // Parse_Unicore_Hash.c
 
 //----------------------------------------
 // 协议特定辅助函数声明
 //----------------------------------------
 
-// BT/SEMP协议辅助函数
-bool mpBtGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_BT_HEADER **header);
-bool mpBtGetMessageData(const uint8_t *buffer, uint16_t length, 
-                        const uint8_t **dataPtr, uint16_t *dataLength);
-bool mpBtVerifyMessage(const uint8_t *buffer, uint16_t length);
+// BT/SEMP
+uint16_t msgp_bt_getMessageId(const MP_PARSE_STATE *parse);
+uint8_t msgp_bt_getMessageType(const MP_PARSE_STATE *parse);
+const uint8_t* msgp_bt_getPayload(const MP_PARSE_STATE *parse, uint16_t *length);
 
-// NMEA协议辅助函数
-const char* mpNmeaGetSentenceName(const MP_PARSE_STATE *parse);
-int mpNmeaParseFields(const char *sentence, char fields[][32], int maxFields);
-bool mpNmeaValidateSentence(const char *sentence);
-const char* mpNmeaGetSentenceType(const char *sentenceName);
+// NMEA
+const char* msgp_nmea_getSentenceName(const MP_PARSE_STATE *parse);
+int msgp_nmea_parseFields(const MP_PARSE_STATE *parse, char fields[][32], int maxFields);
+const char* msgp_nmea_getSentenceType(const char *sentenceName);
 
-// u-blox协议辅助函数
-bool mpUbloxGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_UBLOX_HEADER **header);
-const char* mpUbloxGetMessageName(uint8_t messageClass, uint8_t messageId);
-bool mpUbloxVerifyMessage(const uint8_t *buffer, uint16_t length);
-bool mpUbloxParseNavPvt(const uint8_t *buffer, uint16_t length, 
-                        double *latitude, double *longitude, int32_t *height);
+// u-blox
+uint16_t msgp_ublox_getMessageNumber(const MP_PARSE_STATE *parse); // (Class << 8) | ID
+uint8_t msgp_ublox_getClass(const MP_PARSE_STATE *parse);
+uint8_t msgp_ublox_getId(const MP_PARSE_STATE *parse);
+const uint8_t* msgp_ublox_getPayload(const MP_PARSE_STATE *parse, uint16_t *length);
 
-// RTCM协议辅助函数
-bool mpRtcmGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_RTCM_HEADER **header);
-const char* mpRtcmGetMessageName(uint16_t messageNumber);
-bool mpRtcmVerifyMessage(const uint8_t *buffer, uint16_t length);
-bool mpRtcmGetPayload(const uint8_t *buffer, uint16_t length,
-                      const uint8_t **payload, uint16_t *payloadLength);
+// RTCM
+uint16_t msgp_rtcm_getMessageNumber(const MP_PARSE_STATE *parse);
+const uint8_t* msgp_rtcm_getPayload(const MP_PARSE_STATE *parse, uint16_t *length);
 
-// Unicore Hash协议辅助函数
-bool mpUnicoreHashGetCommandName(const uint8_t *buffer, uint16_t length,
-                                char *commandName, uint16_t commandNameSize);
-bool mpUnicoreHashValidateCommand(const char *command);
-int mpUnicoreHashParseFields(const char *command, char fields[][64], int maxFields);
-const char* mpUnicoreHashGetCommandType(const char *commandName);
-int mpUnicoreHashBuildCommand(const char *commandName, const char *fields[], 
-                             int fieldCount, char *output, int outputSize);
+// Unicore Binary
+uint16_t msgp_unicore_bin_getMessageId(const MP_PARSE_STATE *parse);
+const uint8_t* msgp_unicore_bin_getPayload(const MP_PARSE_STATE *parse, uint16_t *length);
+
+// Unicore Hash
+const char* msgp_unicore_hash_getSentenceName(const MP_PARSE_STATE *parse);
+int msgp_unicore_hash_parseFields(const MP_PARSE_STATE *parse, char fields[][64], int maxFields);
+const char* msgp_unicore_hash_getCommandType(const char *commandName);
 
 //----------------------------------------
 // 工具函数
@@ -377,7 +310,7 @@ int mpUnicoreHashBuildCommand(const char *commandName, const char *fields[],
  * @param data ASCII字符
  * @return 半字节值，失败返回-1
  */
-int mpAsciiToNibble(int data);
+int msgp_util_asciiToNibble(int data);
 
 /**
  * @brief 安全的printf包装
@@ -385,7 +318,7 @@ int mpAsciiToNibble(int data);
  * @param format 格式字符串
  * @param ... 可变参数
  */
-void mpSafePrintf(MP_PRINTF_CALLBACK callback, const char *format, ...);
+void msgp_util_safePrintf(MP_PRINTF_CALLBACK callback, const char *format, ...);
 
 /**
  * @brief 十六进制数据转字符串
@@ -395,7 +328,7 @@ void mpSafePrintf(MP_PRINTF_CALLBACK callback, const char *format, ...);
  * @param outputSize 输出缓冲区大小
  * @return 实际输出的字符数
  */
-int mpHexToString(const uint8_t *data, uint16_t length, char *output, uint16_t outputSize);
+int msgp_util_hexToString(const uint8_t *data, uint16_t length, char *output, uint16_t outputSize);
 
 /**
  * @brief 计算数据的简单校验和
@@ -403,7 +336,18 @@ int mpHexToString(const uint8_t *data, uint16_t length, char *output, uint16_t o
  * @param length 数据长度
  * @return 校验和值
  */
-uint8_t mpCalculateChecksum(const uint8_t *data, uint16_t length);
+uint8_t msgp_util_calculateChecksum(const uint8_t *data, uint16_t length);
+
+/**
+ * @brief 解析由分隔符分割的字段
+ * @param sentence 输入字符串
+ * @param fields 输出的字段数组
+ * @param maxFields 字段数组的最大容量
+ * @param delimiter 字段分隔符 (e.g., ',')
+ * @param terminator 句子终止符 (e.g., '*')
+ * @return 解析出的字段数量
+ */
+int msgp_util_parse_delimited_fields(const char *sentence, void *fields, int maxFields, int fieldSize, char delimiter, char terminator);
 
 #ifdef __cplusplus
 }

@@ -93,25 +93,15 @@ static bool mpRtcmReadCrc24_3(MP_PARSE_STATE *parse, uint8_t data)
     
     // 验证CRC24
     if (scratchPad->rtcm.crc == computedCrc) {
-        // CRC正确，消息解析成功
-        parse->messagesProcessed[MP_PROTOCOL_RTCM]++;
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_RTCM);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
-        
-        mpSafePrintf(parse->printDebug,
-            "MP: RTCM消息解析成功, 类型=%d, 长度=%d",
-            scratchPad->rtcm.messageNumber, scratchPad->rtcm.messageLength);
     } else {
-        // CRC错误
-        parse->crcErrors[MP_PROTOCOL_RTCM]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s RTCM CRC24错误, 接收: 0x%06X, 计算: 0x%06X",
-            parse->parserName ? parse->parserName : "Unknown",
-            scratchPad->rtcm.crc, computedCrc);
+        if (parse->badCrc) {
+            parse->badCrc(parse);
+        }
     }
-    
-    return false; // 消息处理完成
+    return false;
 }
 
 /**
@@ -187,14 +177,14 @@ static bool mpRtcmReadLengthLow(MP_PARSE_STATE *parse, uint8_t data)
     if (scratchPad->rtcm.messageLength > 1023 || 
         scratchPad->rtcm.messageLength > (parse->bufferLength - parse->length - 3)) {
         
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: RTCM消息长度错误: %d字节 (最大1023字节, 缓冲区剩余: %d字节)",
             scratchPad->rtcm.messageLength,
             parse->bufferLength - parse->length - 3);
         return false;
     }
     
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: RTCM消息长度: %d字节", scratchPad->rtcm.messageLength);
     
     // 如果负载长度为0，直接读取CRC24
@@ -217,18 +207,16 @@ static bool mpRtcmReadLengthLow(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到RTCM协议前导，false=不是RTCM协议
  */
-bool mpRtcmPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_rtcm_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测RTCM前导字节 (0xD3)
-    if (data != 0xD3) {
-        return false;
-    }
+    if (data != 0xD3) return false;
 
-    // 初始化RTCM解析状态
-    parse->computeCrc = NULL; // RTCM使用自己的CRC24算法
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->computeCrc = NULL;
     parse->state = mpRtcmReadLengthLow;
     
-    mpSafePrintf(parse->printDebug, 
+    msgp_util_safePrintf(parse->printDebug, 
         "MP: 检测到RTCM协议前导字节 0x%02X", data);
     
     return true;
@@ -238,156 +226,27 @@ bool mpRtcmPreamble(MP_PARSE_STATE *parse, uint8_t data)
 // RTCM协议辅助函数
 //----------------------------------------
 
-/**
- * @brief 获取RTCM消息头部信息
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param header 输出的头部信息指针
- * @return true=成功解析头部，false=头部格式错误
- */
-bool mpRtcmGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_RTCM_HEADER **header)
+uint16_t msgp_rtcm_getMessageNumber(const MP_PARSE_STATE *parse)
 {
-    if (!buffer || !header || length < 3) {
-        return false;
-    }
-    
-    // RTCM头部需要手动解析，因为它是位字段格式
-    static MP_RTCM_HEADER rtcmHeader;
-    
-    if (buffer[0] != 0xD3) {
-        return false;
-    }
-    
-    rtcmHeader.preamble = buffer[0];
-    
-    // 提取消息长度（10位）：高2位在buffer[1]的低2位，低8位在buffer[2]
-    rtcmHeader.messageLength = ((buffer[1] & 0x03) << 8) | buffer[2];
-    
-    // 如果有足够的数据，提取消息编号（12位）
-    if (length >= 5) {
-        rtcmHeader.messageNumber = (buffer[3] << 4) | (buffer[4] >> 4);
-    } else {
-        rtcmHeader.messageNumber = 0;
-    }
-    
-    *header = &rtcmHeader;
-    return true;
+    if (!parse || parse->length < 3) return 0;
+    // RTCM message number is in the 12 bits after the 12-bit length field
+    return ((uint16_t)(parse->buffer[1] & 0x0F) << 8) | parse->buffer[2];
 }
 
-/**
- * @brief 获取RTCM消息类型名称
- * @param messageNumber RTCM消息编号
- * @return 消息类型名称字符串
- */
-const char* mpRtcmGetMessageName(uint16_t messageNumber)
+const uint8_t* msgp_rtcm_getPayload(const MP_PARSE_STATE *parse, uint16_t *length)
 {
-    // 常见的RTCM消息类型
-    switch (messageNumber) {
-        case 1001: return "RTCM 1001 - L1-Only GPS RTK Observables";
-        case 1002: return "RTCM 1002 - Extended L1-Only GPS RTK Observables";
-        case 1003: return "RTCM 1003 - L1&L2 GPS RTK Observables";
-        case 1004: return "RTCM 1004 - Extended L1&L2 GPS RTK Observables";
-        case 1005: return "RTCM 1005 - Stationary RTK Reference Station ARP";
-        case 1006: return "RTCM 1006 - Stationary RTK Reference Station ARP with Height";
-        case 1007: return "RTCM 1007 - Antenna Descriptor";
-        case 1008: return "RTCM 1008 - Antenna Descriptor & Serial Number";
-        case 1009: return "RTCM 1009 - L1-Only GLONASS RTK Observables";
-        case 1010: return "RTCM 1010 - Extended L1-Only GLONASS RTK Observables";
-        case 1011: return "RTCM 1011 - L1&L2 GLONASS RTK Observables";
-        case 1012: return "RTCM 1012 - Extended L1&L2 GLONASS RTK Observables";
-        case 1013: return "RTCM 1013 - System Parameters";
-        case 1019: return "RTCM 1019 - GPS Satellite Ephemeris Data";
-        case 1020: return "RTCM 1020 - GLONASS Satellite Ephemeris Data";
-        case 1033: return "RTCM 1033 - Receiver and Antenna Descriptors";
-        case 1074: return "RTCM 1074 - GPS MSM4";
-        case 1075: return "RTCM 1075 - GPS MSM5";
-        case 1076: return "RTCM 1076 - GPS MSM6";
-        case 1077: return "RTCM 1077 - GPS MSM7";
-        case 1084: return "RTCM 1084 - GLONASS MSM4";
-        case 1085: return "RTCM 1085 - GLONASS MSM5";
-        case 1086: return "RTCM 1086 - GLONASS MSM6";
-        case 1087: return "RTCM 1087 - GLONASS MSM7";
-        case 1094: return "RTCM 1094 - Galileo MSM4";
-        case 1095: return "RTCM 1095 - Galileo MSM5";
-        case 1096: return "RTCM 1096 - Galileo MSM6";
-        case 1097: return "RTCM 1097 - Galileo MSM7";
-        case 1124: return "RTCM 1124 - BeiDou MSM4";
-        case 1125: return "RTCM 1125 - BeiDou MSM5";
-        case 1126: return "RTCM 1126 - BeiDou MSM6";
-        case 1127: return "RTCM 1127 - BeiDou MSM7";
-        case 1230: return "RTCM 1230 - GLONASS L1 and L2 Code-Phase Biases";
-        default:
-            if (messageNumber >= 1001 && messageNumber <= 1299) {
-                return "RTCM Reserved Message";
-            } else if (messageNumber >= 4001 && messageNumber <= 4095) {
-                return "RTCM Proprietary Message";
-            } else {
-                return "RTCM Unknown Message";
-            }
+    if (!parse || !length || parse->length < 6) { // header(3) + crc(3)
+        if (length) *length = 0;
+        return NULL;
     }
-}
+    // Length is in the 10 bits after the preamble
+    uint16_t payloadLength = ((uint16_t)(parse->buffer[1] & 0x03) << 8) | parse->buffer[2];
+    
+    if ( (3 + payloadLength + 3) != parse->length) {
+        *length = 0;
+        return NULL;
+    }
 
-/**
- * @brief 验证RTCM消息的完整性
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @return true=消息完整且CRC正确，false=消息损坏
- */
-bool mpRtcmVerifyMessage(const uint8_t *buffer, uint16_t length)
-{
-    if (!buffer || length < 6) { // 最小长度：前导+长度+CRC
-        return false;
-    }
-    
-    MP_RTCM_HEADER *header;
-    if (!mpRtcmGetHeaderInfo(buffer, length, &header)) {
-        return false;
-    }
-    
-    // 验证消息长度
-    uint16_t expectedLength = 3 + header->messageLength + 3; // 前导+长度+负载+CRC24
-    if (length != expectedLength) {
-        return false;
-    }
-    
-    // 计算并验证CRC24
-    uint32_t computedCrc = mpRtcmComputeCrc24(buffer, length - 3);
-    
-    // 提取接收到的CRC24
-    uint32_t receivedCrc = ((uint32_t)buffer[length - 3] << 16) |
-                          ((uint32_t)buffer[length - 2] << 8) |
-                          buffer[length - 1];
-    
-    return (computedCrc == receivedCrc);
-}
-
-/**
- * @brief 获取RTCM消息负载数据
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param payload 输出的负载数据指针
- * @param payloadLength 输出的负载长度
- * @return true=成功，false=失败
- */
-bool mpRtcmGetPayload(const uint8_t *buffer, uint16_t length,
-                      const uint8_t **payload, uint16_t *payloadLength)
-{
-    if (!buffer || !payload || !payloadLength) {
-        return false;
-    }
-    
-    MP_RTCM_HEADER *header;
-    if (!mpRtcmGetHeaderInfo(buffer, length, &header)) {
-        return false;
-    }
-    
-    // 验证消息长度
-    if (length < (3 + header->messageLength + 3)) {
-        return false;
-    }
-    
-    *payload = buffer + 3; // 跳过前导和长度字段
-    *payloadLength = header->messageLength;
-    
-    return true;
+    *length = payloadLength;
+    return parse->buffer + 3;
 } 

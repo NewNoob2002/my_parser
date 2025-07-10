@@ -144,48 +144,6 @@ my_parser_main/fast:
 	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/build
 .PHONY : my_parser_main/fast
 
-# Convenience name for target.
-my_parser/CMakeFiles/message_parser_demo.dir/rule:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/message_parser_demo.dir/rule
-.PHONY : my_parser/CMakeFiles/message_parser_demo.dir/rule
-
-# Convenience name for target.
-message_parser_demo: my_parser/CMakeFiles/message_parser_demo.dir/rule
-.PHONY : message_parser_demo
-
-# fast build rule for target.
-message_parser_demo/fast:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/build
-.PHONY : message_parser_demo/fast
-
-# Convenience name for target.
-my_parser/CMakeFiles/message_parser_example.dir/rule:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/message_parser_example.dir/rule
-.PHONY : my_parser/CMakeFiles/message_parser_example.dir/rule
-
-# Convenience name for target.
-message_parser_example: my_parser/CMakeFiles/message_parser_example.dir/rule
-.PHONY : message_parser_example
-
-# fast build rule for target.
-message_parser_example/fast:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/build
-.PHONY : message_parser_example/fast
-
-# Convenience name for target.
-my_parser/CMakeFiles/robust_parser_demo.dir/rule:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 my_parser/CMakeFiles/robust_parser_demo.dir/rule
-.PHONY : my_parser/CMakeFiles/robust_parser_demo.dir/rule
-
-# Convenience name for target.
-robust_parser_demo: my_parser/CMakeFiles/robust_parser_demo.dir/rule
-.PHONY : robust_parser_demo
-
-# fast build rule for target.
-robust_parser_demo/fast:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/build
-.PHONY : robust_parser_demo/fast
-
 Message_Parser.o: Message_Parser.c.o
 .PHONY : Message_Parser.o
 
@@ -354,78 +312,6 @@ Parse_Unicore_Hash.c.s:
 	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_lib.dir/build.make my_parser/CMakeFiles/message_parser_lib.dir/Parse_Unicore_Hash.c.s
 .PHONY : Parse_Unicore_Hash.c.s
 
-demo/message_parser_demo.o: demo/message_parser_demo.c.o
-.PHONY : demo/message_parser_demo.o
-
-# target to build an object file
-demo/message_parser_demo.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.o
-.PHONY : demo/message_parser_demo.c.o
-
-demo/message_parser_demo.i: demo/message_parser_demo.c.i
-.PHONY : demo/message_parser_demo.i
-
-# target to preprocess a source file
-demo/message_parser_demo.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.i
-.PHONY : demo/message_parser_demo.c.i
-
-demo/message_parser_demo.s: demo/message_parser_demo.c.s
-.PHONY : demo/message_parser_demo.s
-
-# target to generate assembly for a file
-demo/message_parser_demo.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/demo/message_parser_demo.c.s
-.PHONY : demo/message_parser_demo.c.s
-
-demo/message_parser_example.o: demo/message_parser_example.c.o
-.PHONY : demo/message_parser_example.o
-
-# target to build an object file
-demo/message_parser_example.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.o
-.PHONY : demo/message_parser_example.c.o
-
-demo/message_parser_example.i: demo/message_parser_example.c.i
-.PHONY : demo/message_parser_example.i
-
-# target to preprocess a source file
-demo/message_parser_example.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.i
-.PHONY : demo/message_parser_example.c.i
-
-demo/message_parser_example.s: demo/message_parser_example.c.s
-.PHONY : demo/message_parser_example.s
-
-# target to generate assembly for a file
-demo/message_parser_example.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.s
-.PHONY : demo/message_parser_example.c.s
-
-demo/robust_parser_demo.o: demo/robust_parser_demo.c.o
-.PHONY : demo/robust_parser_demo.o
-
-# target to build an object file
-demo/robust_parser_demo.c.o:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/demo/robust_parser_demo.c.o
-.PHONY : demo/robust_parser_demo.c.o
-
-demo/robust_parser_demo.i: demo/robust_parser_demo.c.i
-.PHONY : demo/robust_parser_demo.i
-
-# target to preprocess a source file
-demo/robust_parser_demo.c.i:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/demo/robust_parser_demo.c.i
-.PHONY : demo/robust_parser_demo.c.i
-
-demo/robust_parser_demo.s: demo/robust_parser_demo.c.s
-.PHONY : demo/robust_parser_demo.s
-
-# target to generate assembly for a file
-demo/robust_parser_demo.c.s:
-	cd /Users/gtc/workspace/my_parser/build && $(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/demo/robust_parser_demo.c.s
-.PHONY : demo/robust_parser_demo.c.s
-
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -458,11 +344,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... message_parser_demo"
-	@echo "... message_parser_example"
 	@echo "... message_parser_lib"
 	@echo "... my_parser_main"
-	@echo "... robust_parser_demo"
 	@echo "... Message_Parser.o"
 	@echo "... Message_Parser.i"
 	@echo "... Message_Parser.s"
@@ -484,15 +367,6 @@ help:
 	@echo "... Parse_Unicore_Hash.o"
 	@echo "... Parse_Unicore_Hash.i"
 	@echo "... Parse_Unicore_Hash.s"
-	@echo "... demo/message_parser_demo.o"
-	@echo "... demo/message_parser_demo.i"
-	@echo "... demo/message_parser_demo.s"
-	@echo "... demo/message_parser_example.o"
-	@echo "... demo/message_parser_example.i"
-	@echo "... demo/message_parser_example.s"
-	@echo "... demo/robust_parser_demo.o"
-	@echo "... demo/robust_parser_demo.i"
-	@echo "... demo/robust_parser_demo.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

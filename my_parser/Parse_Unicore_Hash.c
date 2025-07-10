@@ -61,51 +61,19 @@ static void mpUnicoreHashValidateChecksum(MP_PARSE_STATE *parse)
     int checksum;
     
     // 转换校验和字符为二进制值
-    checksum = mpAsciiToNibble(parse->buffer[parse->length - 2]) << 4;
-    checksum |= mpAsciiToNibble(parse->buffer[parse->length - 1]);
+    checksum = msgp_util_asciiToNibble(parse->buffer[parse->length - 2]) << 4;
+    checksum |= msgp_util_asciiToNibble(parse->buffer[parse->length - 1]);
 
     // 验证校验和
-    if ((checksum == (int)(parse->crc & 0xFF)) || 
-        (parse->badCrc && (!parse->badCrc(parse)))) {
-        
-        // 校验和正确，添加CRLF
-        parse->buffer[parse->length++] = '\r';
-        parse->buffer[parse->length++] = '\n';
-        parse->buffer[parse->length] = 0; // 零终止符
-
-        // 处理Unicore Hash命令
-        parse->messagesProcessed[MP_PROTOCOL_UNICORE_HASH]++;
+    bool checksum_ok = (checksum == (int)(parse->crc & 0xFF));
+    if (checksum_ok) {
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_UNICORE_HASH);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
-        
-        // 提取命令名称用于调试
-        char commandName[32] = {0};
-        int commaPos = -1;
-        for (int i = 1; i < parse->length && i < 32; i++) {
-            if (parse->buffer[i] == ',') {
-                commaPos = i;
-                break;
-            }
-            if (i < 31) {
-                commandName[i-1] = parse->buffer[i];
-            }
-        }
-        if (commaPos > 1) {
-            commandName[commaPos-1] = '\0';
-        }
-        
-        mpSafePrintf(parse->printDebug,
-            "MP: Unicore Hash命令解析成功: %s (%d字节)",
-            commandName, parse->length);
     } else {
-        // 校验和错误
-        parse->crcErrors[MP_PROTOCOL_UNICORE_HASH]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s Unicore Hash校验和错误, 接收: %c%c, 计算: %02X",
-            parse->parserName ? parse->parserName : "Unknown",
-            parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
-            (uint8_t)(parse->crc & 0xFF));
+        if (parse->badCrc) {
+            parse->badCrc(parse);
+        }
     }
 }
 
@@ -140,13 +108,13 @@ static bool mpUnicoreHashLineTermination(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpUnicoreHashChecksumByte2(MP_PARSE_STATE *parse, uint8_t data)
 {
     // 验证第二个校验和字符是否为有效的十六进制字符
-    if (mpAsciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
+    if (msgp_util_asciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
         parse->state = mpUnicoreHashLineTermination;
         return true;
     }
 
     // 无效的校验和字符
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: %s Unicore Hash无效的第二个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
     return false;
@@ -161,13 +129,13 @@ static bool mpUnicoreHashChecksumByte2(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpUnicoreHashChecksumByte1(MP_PARSE_STATE *parse, uint8_t data)
 {
     // 验证第一个校验和字符是否为有效的十六进制字符
-    if (mpAsciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
+    if (msgp_util_asciiToNibble(parse->buffer[parse->length - 1]) >= 0) {
         parse->state = mpUnicoreHashChecksumByte2;
         return true;
     }
 
     // 无效的校验和字符
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: %s Unicore Hash无效的第一个校验和字符: 0x%02X",
         parse->parserName ? parse->parserName : "Unknown", data);
     return false;
@@ -194,7 +162,7 @@ static bool mpUnicoreHashFindSemicolon(MP_PARSE_STATE *parse, uint8_t data)
         // 验证缓冲区空间是否足够
         if ((uint32_t)(parse->length + UNICORE_HASH_BUFFER_OVERHEAD) > parse->bufferLength) {
             // 命令过长
-            mpSafePrintf(parse->printDebug,
+            msgp_util_safePrintf(parse->printDebug,
                 "MP: %s Unicore Hash命令过长, 增加缓冲区大小 > %d",
                 parse->parserName ? parse->parserName : "Unknown",
                 parse->bufferLength);
@@ -218,7 +186,7 @@ static bool mpUnicoreHashFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
         // 验证命令名称字符的有效性
         uint8_t upper = data & ~0x20; // 转换为大写
         if (((upper < 'A') || (upper > 'Z')) && ((data < '0') || (data > '9'))) {
-            mpSafePrintf(parse->printDebug,
+            msgp_util_safePrintf(parse->printDebug,
                 "MP: %s Unicore Hash无效命令名字符: 0x%02X ('%c')",
                 parse->parserName ? parse->parserName : "Unknown", data, 
                 (data >= 32 && data <= 126) ? data : '?');
@@ -234,7 +202,7 @@ static bool mpUnicoreHashFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
         if (nameLen > 0 && nameLen < 31) {
             memcpy(commandName, parse->buffer + 1, nameLen);
             commandName[nameLen] = '\0';
-            mpSafePrintf(parse->printDebug,
+            msgp_util_safePrintf(parse->printDebug,
                 "MP: Unicore Hash命令名: %s", commandName);
         }
     }
@@ -251,19 +219,17 @@ static bool mpUnicoreHashFindFirstComma(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到Unicore Hash协议前导，false=不是Unicore Hash协议
  */
-bool mpUnicoreHashPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_unicore_hash_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测Unicore Hash前导字符 (#)
-    if (data != '#') {
-        return false;
-    }
-    
-    // 初始化Unicore Hash解析状态
-    parse->crc = 0;              // Unicore Hash校验和从0开始
-    parse->computeCrc = NULL;    // Unicore Hash使用简单异或校验
+    if (data != '#') return false;
+
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->crc = 0;
+    parse->computeCrc = NULL;
     parse->state = mpUnicoreHashFindFirstComma;
     
-    mpSafePrintf(parse->printDebug, 
+    msgp_util_safePrintf(parse->printDebug, 
         "MP: 检测到Unicore Hash协议前导字符 '#'");
     
     return true;
@@ -272,156 +238,39 @@ bool mpUnicoreHashPreamble(MP_PARSE_STATE *parse, uint8_t data)
 //----------------------------------------
 // Unicore Hash协议辅助函数
 //----------------------------------------
-
-/**
- * @brief 获取Unicore Hash命令名称
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param commandName 输出命令名称缓冲区
- * @param commandNameSize 命令名称缓冲区大小
- * @return true=成功提取命令名称，false=格式错误
- */
-bool mpUnicoreHashGetCommandName(const uint8_t *buffer, uint16_t length,
-                                char *commandName, uint16_t commandNameSize)
+const char* msgp_unicore_hash_getSentenceName(const MP_PARSE_STATE *parse)
 {
-    if (!buffer || !commandName || commandNameSize == 0 || length < 3) {
-        return false;
-    }
-    
-    // 验证前导字符
-    if (buffer[0] != '#') {
-        return false;
-    }
-    
-    // 查找第一个逗号
-    int commaPos = -1;
-    for (int i = 1; i < length; i++) {
-        if (buffer[i] == ',') {
-            commaPos = i;
+    static char commandName[32];
+    if (!parse || parse->length < 2) return "";
+
+    int nameLen = 0;
+    for (int i = 1; i < parse->length && i < 32; i++) {
+        if (parse->buffer[i] == ',') {
+            nameLen = i - 1;
             break;
         }
     }
-    
-    if (commaPos == -1 || commaPos == 1) {
-        return false; // 没有找到逗号或命令名为空
+    if(nameLen > 0) {
+        memcpy(commandName, parse->buffer + 1, nameLen);
+        commandName[nameLen] = '\0';
+        return commandName;
     }
-    
-    // 提取命令名称
-    int nameLen = commaPos - 1;
-    if (nameLen >= commandNameSize) {
-        nameLen = commandNameSize - 1;
-    }
-    
-    memcpy(commandName, buffer + 1, nameLen);
-    commandName[nameLen] = '\0';
-    
-    return true;
+    return "";
 }
 
-/**
- * @brief 验证Unicore Hash命令格式
- * @param command Unicore Hash命令字符串
- * @return true=格式正确，false=格式错误
- */
-bool mpUnicoreHashValidateCommand(const char *command)
+int msgp_unicore_hash_parseFields(const MP_PARSE_STATE *parse, char fields[][64], int maxFields)
 {
-    if (!command || command[0] != '#') {
-        return false;
-    }
-    
-    int len = strlen(command);
-    if (len < 8) { // 最小长度: #XXXXX*XX
-        return false;
-    }
-    
-    // 查找分号或星号位置
-    int separatorPos = -1;
-    for (int i = 1; i < len; i++) {
-        if (command[i] == ';' || command[i] == '*') {
-            separatorPos = i;
-            break;
-        }
-    }
-    
-    if (separatorPos == -1 || separatorPos >= (len - 2)) {
-        return false; // 没有找到分隔符或校验和不完整
-    }
-    
-    // 验证校验和字符是否为十六进制
-    if (mpAsciiToNibble(command[separatorPos + 1]) < 0 || 
-        mpAsciiToNibble(command[separatorPos + 2]) < 0) {
-        return false;
-    }
-    
-    // 计算并验证校验和
-    uint8_t calculatedChecksum = 0;
-    for (int i = 1; i < separatorPos; i++) {
-        calculatedChecksum ^= command[i];
-    }
-    
-    int receivedChecksum = (mpAsciiToNibble(command[separatorPos + 1]) << 4) | 
-                          mpAsciiToNibble(command[separatorPos + 2]);
-    
-    return (calculatedChecksum == receivedChecksum);
+    if (!parse || !fields || maxFields <= 0) return 0;
+
+    char sentence[MP_MINIMUM_BUFFER_LENGTH];
+    uint16_t len = (parse->length < sizeof(sentence) -1) ? parse->length : sizeof(sentence) - 1;
+    memcpy(sentence, parse->buffer, len);
+    sentence[len] = '\0';
+
+    return msgp_util_parse_delimited_fields(sentence, fields, maxFields, 64, ',', '*');
 }
 
-/**
- * @brief 解析Unicore Hash命令获取字段数据
- * @param command Unicore Hash命令字符串
- * @param fields 输出字段数组
- * @param maxFields 最大字段数量
- * @return 实际解析的字段数量
- */
-int mpUnicoreHashParseFields(const char *command, char fields[][64], int maxFields)
-{
-    if (!command || !fields || maxFields <= 0) {
-        return 0;
-    }
-    
-    int fieldCount = 0;
-    int fieldPos = 0;
-    int commandPos = 0;
-    
-    // 跳过前导 '#' 和命令名称直到第一个逗号
-    while (command[commandPos] && command[commandPos] != ',') {
-        commandPos++;
-    }
-    if (command[commandPos] == ',') {
-        commandPos++; // 跳过逗号
-    }
-    
-    // 解析字段
-    while (command[commandPos] && command[commandPos] != ';' && 
-           command[commandPos] != '*' && fieldCount < maxFields) {
-        if (command[commandPos] == ',') {
-            // 字段结束
-            fields[fieldCount][fieldPos] = '\0';
-            fieldCount++;
-            fieldPos = 0;
-        } else {
-            // 添加字符到当前字段
-            if (fieldPos < 63) { // 预留一个字符给 '\0'
-                fields[fieldCount][fieldPos++] = command[commandPos];
-            }
-        }
-        commandPos++;
-    }
-    
-    // 处理最后一个字段
-    if (fieldPos > 0 && fieldCount < maxFields) {
-        fields[fieldCount][fieldPos] = '\0';
-        fieldCount++;
-    }
-    
-    return fieldCount;
-}
-
-/**
- * @brief 识别Unicore Hash命令类型
- * @param commandName Unicore Hash命令名称
- * @return 命令类型描述字符串
- */
-const char* mpUnicoreHashGetCommandType(const char *commandName)
+const char* msgp_unicore_hash_getCommandType(const char *commandName)
 {
     if (!commandName) return "Unknown";
     
@@ -468,7 +317,7 @@ const char* mpUnicoreHashGetCommandType(const char *commandName)
  * @param outputSize 输出缓冲区大小
  * @return 实际输出的字符数，-1表示失败
  */
-int mpUnicoreHashBuildCommand(const char *commandName, const char *fields[], 
+int msgp_unicore_hash_buildCommand(const char *commandName, const char *fields[], 
                              int fieldCount, char *output, int outputSize)
 {
     if (!commandName || !output || outputSize < 16) {

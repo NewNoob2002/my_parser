@@ -142,45 +142,6 @@ my_parser_main/fast:
 	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/my_parser_main.dir/build.make my_parser/CMakeFiles/my_parser_main.dir/build
 .PHONY : my_parser_main/fast
 
-#=============================================================================
-# Target rules for targets named message_parser_demo
-
-# Build rule for target.
-message_parser_demo: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 message_parser_demo
-.PHONY : message_parser_demo
-
-# fast build rule for target.
-message_parser_demo/fast:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_demo.dir/build.make my_parser/CMakeFiles/message_parser_demo.dir/build
-.PHONY : message_parser_demo/fast
-
-#=============================================================================
-# Target rules for targets named message_parser_example
-
-# Build rule for target.
-message_parser_example: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 message_parser_example
-.PHONY : message_parser_example
-
-# fast build rule for target.
-message_parser_example/fast:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/message_parser_example.dir/build.make my_parser/CMakeFiles/message_parser_example.dir/build
-.PHONY : message_parser_example/fast
-
-#=============================================================================
-# Target rules for targets named robust_parser_demo
-
-# Build rule for target.
-robust_parser_demo: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 robust_parser_demo
-.PHONY : robust_parser_demo
-
-# fast build rule for target.
-robust_parser_demo/fast:
-	$(MAKE) $(MAKESILENT) -f my_parser/CMakeFiles/robust_parser_demo.dir/build.make my_parser/CMakeFiles/robust_parser_demo.dir/build
-.PHONY : robust_parser_demo/fast
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -189,11 +150,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... message_parser_demo"
-	@echo "... message_parser_example"
 	@echo "... message_parser_lib"
 	@echo "... my_parser_main"
-	@echo "... robust_parser_demo"
 .PHONY : help
 
 

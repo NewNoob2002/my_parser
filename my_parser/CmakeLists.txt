@@ -29,15 +29,3 @@ add_library(message_parser_lib STATIC ${PARSER_SOURCES})
 # 创建主程序
 add_executable(my_parser_main main.cpp)
 target_link_libraries(my_parser_main PRIVATE message_parser_lib)
-
-# 创建demo程序1
-add_executable(message_parser_demo demo/message_parser_demo.c)
-target_link_libraries(message_parser_demo PRIVATE message_parser_lib)
-
-# 创建demo程序2
-add_executable(message_parser_example demo/message_parser_example.c)
-target_link_libraries(message_parser_example PRIVATE message_parser_lib)
-
-# 创建健壮性演示程序
-add_executable(robust_parser_demo demo/robust_parser_demo.c)
-target_link_libraries(robust_parser_demo PRIVATE message_parser_lib)

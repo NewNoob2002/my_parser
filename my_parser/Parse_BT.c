@@ -26,7 +26,7 @@
 // 外部CRC32计算函数声明
 //----------------------------------------
 
-extern uint32_t mpComputeCrc32(MP_PARSE_STATE *parse, uint8_t data);
+extern uint32_t msgp_computeCrc32(MP_PARSE_STATE *parse, uint8_t data);
 
 //----------------------------------------
 // 内部状态函数前向声明
@@ -70,27 +70,17 @@ static bool mpBtReadCrc(MP_PARSE_STATE *parse, uint8_t data)
     
     // 验证CRC
     if (crcRead == crcComputed) {
-        // CRC正确，调用消息结束回调
-        parse->messagesProcessed[MP_PROTOCOL_BT]++;
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_BT);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
     } else {
-        // CRC错误
-        parse->crcErrors[MP_PROTOCOL_BT]++;
-        if ((!parse->badCrc) || (!parse->badCrc(parse))) {
-            mpSafePrintf(parse->printDebug,
-                "MP: %s BT/SEMP CRC错误, 接收: %02X %02X %02X %02X, 计算: %02X %02X %02X %02X",
-                parse->parserName ? parse->parserName : "Unknown",
-                parse->buffer[parse->length - 4], parse->buffer[parse->length - 3],
-                parse->buffer[parse->length - 2], parse->buffer[parse->length - 1],
-                crcComputed & 0xff, (crcComputed >> 8) & 0xff,
-                (crcComputed >> 16) & 0xff, (crcComputed >> 24) & 0xff);
+        if (parse->badCrc) {
+            parse->badCrc(parse);
         }
     }
     
-    // 重置解析器状态，准备解析下一个消息
-    return false; // 返回false表示消息处理完成
+    // 重置解析器状态
+    return false;
 }
 
 /**
@@ -132,7 +122,7 @@ static bool mpBtReadHeader(MP_PARSE_STATE *parse, uint8_t data)
         
         // 验证头部长度
         if (header->headerLength != 0x14) {
-            mpSafePrintf(parse->printDebug, 
+            msgp_util_safePrintf(parse->printDebug, 
                 "MP: BT/SEMP无效头部长度: 0x%02X", header->headerLength);
             return false; // 头部格式错误
         }
@@ -162,7 +152,7 @@ static bool mpBtSync3(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (data != 0x18) {
         // 第三个同步字节错误，重新开始搜索
-        mpSafePrintf(parse->printDebug, 
+        msgp_util_safePrintf(parse->printDebug, 
             "MP: BT/SEMP第三个同步字节错误: 0x%02X", data);
         return false;
     }
@@ -182,7 +172,7 @@ static bool mpBtSync2(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (data != 0x44) {
         // 第二个同步字节错误，重新开始搜索
-        mpSafePrintf(parse->printDebug, 
+        msgp_util_safePrintf(parse->printDebug, 
             "MP: BT/SEMP第二个同步字节错误: 0x%02X", data);
         return false;
     }
@@ -202,28 +192,51 @@ static bool mpBtSync2(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到SEMP协议前导，false=不是SEMP协议
  */
-bool mpBtPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_bt_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测第一个同步字节 (0xAA)
-    if (data != 0xAA) {
-        return false;
-    }
+    if (data != 0xAA) return false;
 
-    // 初始化BT/SEMP解析状态
-    parse->crc = 0xFFFFFFFF;          // CRC32初始值
-    parse->computeCrc = mpComputeCrc32; // 设置CRC计算函数
-    parse->crc = parse->computeCrc(parse, data); // 计算第一个字节的CRC
-    parse->state = mpBtSync2;         // 设置下一个状态
-    
-    mpSafePrintf(parse->printDebug, 
-        "MP: 检测到BT/SEMP协议前导字节 0x%02X", data);
-    
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->crc = 0xFFFFFFFF;
+    parse->computeCrc = msgp_computeCrc32;
+    parse->crc = parse->computeCrc(parse, data);
+    parse->state = mpBtSync2;
     return true;
 }
 
 //----------------------------------------
 // BT/SEMP协议辅助函数
 //----------------------------------------
+
+uint16_t msgp_bt_getMessageId(const MP_PARSE_STATE *parse)
+{
+    if (!parse || parse->length < sizeof(MP_BT_HEADER)) return 0;
+    MP_BT_HEADER *header = (MP_BT_HEADER *)parse->buffer;
+    return header->messageId;
+}
+
+uint8_t msgp_bt_getMessageType(const MP_PARSE_STATE *parse)
+{
+    if (!parse || parse->length < sizeof(MP_BT_HEADER)) return 0;
+    MP_BT_HEADER *header = (MP_BT_HEADER *)parse->buffer;
+    return header->messageType;
+}
+
+const uint8_t* msgp_bt_getPayload(const MP_PARSE_STATE *parse, uint16_t *length)
+{
+    if (!parse || !length || parse->length < sizeof(MP_BT_HEADER) + 4) {
+        if (length) *length = 0;
+        return NULL;
+    }
+    MP_BT_HEADER *header = (MP_BT_HEADER *)parse->buffer;
+    if ( (sizeof(MP_BT_HEADER) + header->messageLength + 4) != parse->length) {
+        *length = 0;
+        return NULL;
+    }
+    *length = header->messageLength;
+    return parse->buffer + sizeof(MP_BT_HEADER);
+}
 
 /**
  * @brief 获取BT/SEMP消息头部信息
@@ -232,7 +245,7 @@ bool mpBtPreamble(MP_PARSE_STATE *parse, uint8_t data)
  * @param header 输出的头部信息指针
  * @return true=成功解析头部，false=头部格式错误
  */
-bool mpBtGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_BT_HEADER **header)
+bool msgp_bt_getHeaderInfo(const uint8_t *buffer, uint16_t length, MP_BT_HEADER **header)
 {
     if (!buffer || !header || length < sizeof(MP_BT_HEADER)) {
         return false;
@@ -263,7 +276,7 @@ bool mpBtGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_BT_HEADER **he
  * @param dataLength 输出的数据长度
  * @return true=成功，false=失败
  */
-bool mpBtGetMessageData(const uint8_t *buffer, uint16_t length, 
+bool msgp_bt_getMessageData(const uint8_t *buffer, uint16_t length, 
                         const uint8_t **dataPtr, uint16_t *dataLength)
 {
     if (!buffer || !dataPtr || !dataLength || length < sizeof(MP_BT_HEADER)) {
@@ -290,14 +303,14 @@ bool mpBtGetMessageData(const uint8_t *buffer, uint16_t length,
  * @param length 消息长度
  * @return true=消息完整且CRC正确，false=消息损坏
  */
-bool mpBtVerifyMessage(const uint8_t *buffer, uint16_t length)
+bool msgp_bt_verifyMessage(const uint8_t *buffer, uint16_t length)
 {
     if (!buffer || length < sizeof(MP_BT_HEADER) + 4) {
         return false;
     }
     
     MP_BT_HEADER *header;
-    if (!mpBtGetHeaderInfo(buffer, length, &header)) {
+    if (!msgp_bt_getHeaderInfo(buffer, length, &header)) {
         return false;
     }
     

@@ -71,24 +71,14 @@ static bool mpUbloxReadChecksumB(MP_PARSE_STATE *parse, uint8_t data)
     
     // 验证第二个校验和字节
     if (data == scratchPad->ublox.checksumB) {
-        // 校验和正确，消息解析成功
-        parse->messagesProcessed[MP_PROTOCOL_UBLOX]++;
         if (parse->eomCallback) {
-            parse->eomCallback(parse, MP_PROTOCOL_UBLOX);
+            parse->eomCallback(parse, parse->protocolIndex);
         }
-        
-        mpSafePrintf(parse->printDebug,
-            "MP: u-blox消息解析成功, 类别=0x%02X, ID=0x%02X, 长度=%d",
-            parse->buffer[2], parse->buffer[3], scratchPad->ublox.bytesRemaining);
     } else {
-        // 校验和B错误
-        parse->crcErrors[MP_PROTOCOL_UBLOX]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s u-blox校验和B错误, 接收: 0x%02X, 计算: 0x%02X",
-            parse->parserName ? parse->parserName : "Unknown", 
-            data, scratchPad->ublox.checksumB);
+        if (parse->badCrc) {
+            parse->badCrc(parse);
+        }
     }
-    
     return false; // 消息处理完成
 }
 
@@ -107,12 +97,7 @@ static bool mpUbloxReadChecksumA(MP_PARSE_STATE *parse, uint8_t data)
         parse->state = mpUbloxReadChecksumB;
         return true;
     } else {
-        // 校验和A错误
-        parse->crcErrors[MP_PROTOCOL_UBLOX]++;
-        mpSafePrintf(parse->printDebug,
-            "MP: %s u-blox校验和A错误, 接收: 0x%02X, 计算: 0x%02X",
-            parse->parserName ? parse->parserName : "Unknown", 
-            data, scratchPad->ublox.checksumA);
+        if(parse->badCrc) parse->badCrc(parse);
         return false;
     }
 }
@@ -155,12 +140,12 @@ static bool mpUbloxReadLengthHigh(MP_PARSE_STATE *parse, uint8_t data)
     // 组合完整的长度值（小端序）
     scratchPad->ublox.bytesRemaining |= (data << 8);
     
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: u-blox消息长度: %d字节", scratchPad->ublox.bytesRemaining);
     
     // 检查消息长度是否合理
     if (scratchPad->ublox.bytesRemaining > (parse->bufferLength - parse->length - 2)) {
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: u-blox消息长度过大: %d字节, 缓冲区剩余: %d字节",
             scratchPad->ublox.bytesRemaining, 
             parse->bufferLength - parse->length - 2);
@@ -215,7 +200,7 @@ static bool mpUbloxReadId(MP_PARSE_STATE *parse, uint8_t data)
     mpUbloxComputeChecksum(parse, parse->buffer[parse->length - 2]); // CLASS
     mpUbloxComputeChecksum(parse, data); // ID
     
-    mpSafePrintf(parse->printDebug,
+    msgp_util_safePrintf(parse->printDebug,
         "MP: u-blox CLASS=0x%02X, ID=0x%02X", 
         parse->buffer[parse->length - 2], data);
     
@@ -245,7 +230,7 @@ static bool mpUbloxReadClass(MP_PARSE_STATE *parse, uint8_t data)
 static bool mpUbloxSync2(MP_PARSE_STATE *parse, uint8_t data)
 {
     if (data != 0x62) {
-        mpSafePrintf(parse->printDebug,
+        msgp_util_safePrintf(parse->printDebug,
             "MP: u-blox第二个同步字节错误: 0x%02X", data);
         return false;
     }
@@ -264,18 +249,16 @@ static bool mpUbloxSync2(MP_PARSE_STATE *parse, uint8_t data)
  * @param data 当前字节
  * @return true=检测到u-blox协议前导，false=不是u-blox协议
  */
-bool mpUbloxPreamble(MP_PARSE_STATE *parse, uint8_t data)
+bool msgp_ublox_preamble(MP_PARSE_STATE *parse, uint8_t data)
 {
-    // 检测第一个同步字节 (0xB5)
-    if (data != 0xB5) {
-        return false;
-    }
+    if (data != 0xB5) return false;
 
-    // 初始化u-blox解析状态
-    parse->computeCrc = NULL; // u-blox使用自己的校验和算法
+    parse->length = 0;
+    parse->buffer[parse->length++] = data;
+    parse->computeCrc = NULL;
     parse->state = mpUbloxSync2;
     
-    mpSafePrintf(parse->printDebug, 
+    msgp_util_safePrintf(parse->printDebug, 
         "MP: 检测到u-blox协议前导字节 0x%02X", data);
     
     return true;
@@ -285,27 +268,38 @@ bool mpUbloxPreamble(MP_PARSE_STATE *parse, uint8_t data)
 // u-blox协议辅助函数
 //----------------------------------------
 
-/**
- * @brief 获取u-blox消息头部信息
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param header 输出的头部信息指针
- * @return true=成功解析头部，false=头部格式错误
- */
-bool mpUbloxGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_UBLOX_HEADER **header)
+uint16_t msgp_ublox_getMessageNumber(const MP_PARSE_STATE *parse)
 {
-    if (!buffer || !header || length < sizeof(MP_UBLOX_HEADER)) {
-        return false;
+    if (!parse || parse->length < 4) return 0;
+    return ((uint16_t)parse->buffer[2] << 8) | parse->buffer[3];
+}
+
+uint8_t msgp_ublox_getClass(const MP_PARSE_STATE *parse)
+{
+    if (!parse || parse->length < 3) return 0;
+    return parse->buffer[2];
+}
+
+uint8_t msgp_ublox_getId(const MP_PARSE_STATE *parse)
+{
+    if (!parse || parse->length < 4) return 0;
+    return parse->buffer[3];
+}
+
+const uint8_t* msgp_ublox_getPayload(const MP_PARSE_STATE *parse, uint16_t *length)
+{
+    if (!parse || !length || parse->length < 8) { // header(6) + ck(2)
+        if (length) *length = 0;
+        return NULL;
     }
-    
-    *header = (MP_UBLOX_HEADER *)buffer;
-    
-    // 验证同步字节
-    if ((*header)->sync1 != 0xB5 || (*header)->sync2 != 0x62) {
-        return false;
+    MP_UBLOX_HEADER* header = (MP_UBLOX_HEADER*)parse->buffer;
+    if ( (sizeof(MP_UBLOX_HEADER) + header->length + 2) != parse->length) {
+         *length = 0;
+        return NULL;
     }
-    
-    return true;
+
+    *length = header->length;
+    return parse->buffer + sizeof(MP_UBLOX_HEADER);
 }
 
 /**
@@ -314,7 +308,7 @@ bool mpUbloxGetHeaderInfo(const uint8_t *buffer, uint16_t length, MP_UBLOX_HEADE
  * @param messageId 消息ID
  * @return 消息类型名称字符串
  */
-const char* mpUbloxGetMessageName(uint8_t messageClass, uint8_t messageId)
+const char* msgp_ublox_getMessageName(uint8_t messageClass, uint8_t messageId)
 {
     // 常见的u-blox消息类型
     switch (messageClass) {
@@ -380,78 +374,4 @@ const char* mpUbloxGetMessageName(uint8_t messageClass, uint8_t messageId)
         default:
             return "Unknown Class";
     }
-}
-
-/**
- * @brief 验证u-blox消息的完整性
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @return true=消息完整且校验和正确，false=消息损坏
- */
-bool mpUbloxVerifyMessage(const uint8_t *buffer, uint16_t length)
-{
-    if (!buffer || length < sizeof(MP_UBLOX_HEADER) + 2) {
-        return false;
-    }
-    
-    MP_UBLOX_HEADER *header;
-    if (!mpUbloxGetHeaderInfo(buffer, length, &header)) {
-        return false;
-    }
-    
-    // 验证消息长度
-    uint16_t expectedLength = sizeof(MP_UBLOX_HEADER) + header->length + 2;
-    if (length != expectedLength) {
-        return false;
-    }
-    
-    // 计算并验证Fletcher校验和
-    uint8_t checksumA = 0, checksumB = 0;
-    
-    // 从CLASS字段开始计算校验和
-    for (int i = 2; i < (length - 2); i++) {
-        checksumA += buffer[i];
-        checksumB += checksumA;
-    }
-    
-    // 验证校验和
-    return (buffer[length - 2] == checksumA && buffer[length - 1] == checksumB);
-}
-
-/**
- * @brief 解析u-blox NAV-PVT消息获取位置信息
- * @param buffer 消息缓冲区
- * @param length 消息长度
- * @param latitude 输出纬度（度）
- * @param longitude 输出经度（度）
- * @param height 输出高度（毫米）
- * @return true=解析成功，false=消息格式错误
- */
-bool mpUbloxParseNavPvt(const uint8_t *buffer, uint16_t length, 
-                        double *latitude, double *longitude, int32_t *height)
-{
-    if (!buffer || !latitude || !longitude || !height || length < (6 + 92 + 2)) {
-        return false;
-    }
-    
-    MP_UBLOX_HEADER *header = (MP_UBLOX_HEADER *)buffer;
-    
-    // 验证这是NAV-PVT消息
-    if (header->messageClass != 0x01 || header->messageId != 0x07 || header->length != 92) {
-        return false;
-    }
-    
-    // 提取位置信息（从消息负载偏移位置获取）
-    const uint8_t *payload = buffer + sizeof(MP_UBLOX_HEADER);
-    
-    // 纬度和经度以1e-7度为单位存储在偏移24和28处
-    int32_t lat_raw = *(int32_t*)(payload + 24);
-    int32_t lon_raw = *(int32_t*)(payload + 28);
-    int32_t height_raw = *(int32_t*)(payload + 32); // 海拔高度（椭球面）
-    
-    *latitude = lat_raw * 1e-7;
-    *longitude = lon_raw * 1e-7;
-    *height = height_raw;
-    
-    return true;
 } 

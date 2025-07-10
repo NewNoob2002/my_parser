@@ -2,8 +2,5 @@
 /Users/gtc/workspace/my_parser/build/CMakeFiles/rebuild_cache.dir
 /Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/message_parser_lib.dir
 /Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/my_parser_main.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/message_parser_demo.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/message_parser_example.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/robust_parser_demo.dir
 /Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/edit_cache.dir
 /Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/rebuild_cache.dir

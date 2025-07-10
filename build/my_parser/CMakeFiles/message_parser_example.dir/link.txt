@@ -1,1 +1,0 @@
-/usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/message_parser_example.dir/demo/message_parser_example.c.o -o ../bin/message_parser_example  ../lib/libmessage_parser_lib.a
