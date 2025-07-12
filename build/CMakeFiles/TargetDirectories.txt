@@ -1,6 +1,6 @@
-/Users/gtc/workspace/my_parser/build/CMakeFiles/edit_cache.dir
-/Users/gtc/workspace/my_parser/build/CMakeFiles/rebuild_cache.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/message_parser_lib.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/my_parser_main.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/edit_cache.dir
-/Users/gtc/workspace/my_parser/build/my_parser/CMakeFiles/rebuild_cache.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/CMakeFiles/edit_cache.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/CMakeFiles/rebuild_cache.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/my_parser/CMakeFiles/message_parser_lib.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/my_parser/CMakeFiles/my_parser_main.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/my_parser/CMakeFiles/edit_cache.dir
+C:/Users/guoti/Desktop/workspace/my_parser/build/my_parser/CMakeFiles/rebuild_cache.dir
