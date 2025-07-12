@@ -36,18 +36,20 @@ extern "C" {
 
 #define MP_ALIGN(x)   ((x + MP_ALIGNMENT_MASK) & (~MP_ALIGNMENT_MASK))
 
+extern const unsigned long semp_crc32Table[256];
 //----------------------------------------
 // 前向声明
 //----------------------------------------
 
-typedef struct _MP_PARSE_STATE MP_PARSE_STATE;
+typedef struct _SEMP_PARSE_STATE SEMP_PARSE_STATE;
 
 //----------------------------------------
 // 回调函数类型定义
 //----------------------------------------
 
 // 解析器函数类型
-typedef bool (*MP_PARSE_ROUTINE)(MP_PARSE_STATE *parse, uint8_t data);
+typedef bool (*SEMP_PARSE_ROUTINE)(SEMP_PARSE_STATE *parse, // Parser state
+                                   uint8_t data); // Incoming data byte
 
 // 消息结束回调
 typedef void (*MP_EOM_CALLBACK)(MP_PARSE_STATE *parse, uint16_t protocolIndex);
@@ -162,7 +164,7 @@ typedef struct _MP_SCRATCH_PAD {
 // 主解析器状态结构体
 //----------------------------------------
 
-typedef struct _MP_PARSE_STATE {
+typedef struct _SEMP_PARSE_STATE {
     // 解析器配置
     const MP_PARSER_INFO *parsers;        // 解析器信息表
     uint16_t parserCount;                 // 解析器数量
