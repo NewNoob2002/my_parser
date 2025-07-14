@@ -186,17 +186,6 @@ void sempStopParser(SEMP_PARSE_STATE **parse)
         *parse = nullptr;
     }
 }
-//----------------------------------------
-// CRC32计算函数（供各协议使用）
-//----------------------------------------
-
-uint32_t semp_computeCrc32(SEMP_PARSE_STATE *parse, uint8_t data)
-{
-    (void)parse; // 避免未使用参数警告
-    uint32_t crc = parse->crc;
-    crc = semp_crc32Table[(crc ^ data) & 0xff] ^ (crc >> 8);
-    return crc;
-}
 
 //----------------------------------------
 // 工具函数实现
@@ -289,6 +278,20 @@ void semp_util_free(void *ptr)
     }
 }
 
+// Translate the type value into an ASCII type name
+const char * sempGetTypeName(SEMP_PARSE_STATE *parse, uint16_t type)
+{
+    const char *name = "Unknown parser";
+
+    if (parse)
+    {
+        if (type == parse->parsers_count)
+            name = "No active parser, scanning for preamble";
+        else if (parse->parserNames_table && (type < parse->parsers_count))
+            name = parse->parserNames_table[type];
+    }
+    return name;
+}
 // Print the parser's configuration
 void sempPrintParserConfiguration(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print)
 {
@@ -336,7 +339,7 @@ int semp_util_asciiToNibble(int data)
  * @param format 格式字符串
  * @param ... 可变参数
  */
-void semp_util_safePrintf(SEMP_PRINTF_CALLBACK callback, const char *format, ...)
+void sempPrintf(SEMP_PRINTF_CALLBACK callback, const char *format, ...)
 {
     if (callback) {
         va_list args;
@@ -360,6 +363,12 @@ void semp_util_safePrintf(SEMP_PRINTF_CALLBACK callback, const char *format, ...
     }
 }
 
+void sempPrintln(SEMP_PRINTF_CALLBACK print, const char *string)
+{
+    if (print) {
+        print("%s\r\n", string);
+    }
+}
 /**
  * @brief 禁用调试输出
  * @param parse 解析结构体

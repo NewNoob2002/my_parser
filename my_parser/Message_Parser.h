@@ -224,6 +224,7 @@ typedef struct _SEMP_CUSTOM_HEADER
 //----------------------------------------
 // 主要API函数声明
 //----------------------------------------
+
 // Allocate and initialize a parse data structure
 SEMP_PARSE_STATE * sempBeginParser(
     const char *parserName, \
@@ -264,6 +265,8 @@ const char * sempGetStateName(const SEMP_PARSE_STATE *parse);
 // Translate the type value into an ASCII type name
 const char * sempGetTypeName(SEMP_PARSE_STATE *parse, uint16_t type);
 
+void sempPrintParserConfiguration(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print);
+
 // Enable or disable debug output
 void sempEnableDebugOutput(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print);
 void sempDisableDebugOutput(SEMP_PARSE_STATE *parse);
@@ -275,11 +278,12 @@ void sempDisableErrorOutput(SEMP_PARSE_STATE *parse);
 //----------------------------------------
 // 各协议解析器前导函数声明（在各自的文件中实现）
 //----------------------------------------
-
+bool sempCustomPreamble(SEMP_PARSE_STATE *parse, uint8_t data);
 
 //----------------------------------------
 // 工具函数
 //----------------------------------------
+
 // 内存分配函数(User implementation)
 void * semp_util_malloc(size_t size);
 void semp_util_free(void *ptr);
@@ -302,14 +306,6 @@ SEMP_PARSE_STATE * sempAllocateParseStructure(
  * @return 半字节值，失败返回-1
  */
 int semp_util_asciiToNibble(int data);
-
-/**
- * @brief 安全的printf包装
- * @param callback printf回调函数
- * @param format 格式字符串
- * @param ... 可变参数
- */
-void semp_util_safePrintf(SEMP_PRINTF_CALLBACK callback, const char *format, ...);
 
 /**
  * @brief 十六进制数据转字符串
