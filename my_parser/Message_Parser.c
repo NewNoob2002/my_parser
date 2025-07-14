@@ -7,15 +7,494 @@
  */
 
 #include "Message_Parser.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 
 //----------------------------------------
-// 版本信息
+// 协议信息函数
 //----------------------------------------
 
-#define VERSION_STRING "1.0.0"
+const char* semp_getProtocolName(const SEMP_PARSE_STATE *parse, uint16_t protocolIndex)
+{
+    if (!parse || protocolIndex >= parse->parsers_count) {
+        return "Unknown";
+    }
+    return parse->parserNames_table[protocolIndex];
+}
+
+const char* semp_getProtocolDescription(uint16_t protocolIndex)
+{
+    // This function is no longer supported as the description has been removed.
+    (void)protocolIndex;
+    return "Description Removed";
+}
+
+//----------------------------------------
+// 主状态机
+//----------------------------------------
+SEMP_PARSE_STATE * sempBeginParser(
+    const char *parserName, \
+    const SEMP_PARSE_ROUTINE *parsersTable, \
+    uint8_t parsersCount, \
+    const char * const *parserNamesTable, \
+    uint8_t parserNamesCount, \
+    uint16_t scratchPadBytes, \
+    uint16_t bufferLength, \
+    SEMP_EOM_CALLBACK eomCallback, \
+    SEMP_PRINTF_CALLBACK printError, \
+    SEMP_PRINTF_CALLBACK printDebug, \
+    SEMP_BAD_CRC_CALLBACK badCrcCallback)
+{
+    SEMP_PARSE_STATE *parse = NULL;
+
+    do
+    {
+        // Validate the parse type names table
+        if (parsersCount != parserNamesCount)
+        {
+            sempPrintln(printError, "SEMP: Please fix parserTable and parserNameTable parserCount != parserNameCount");
+            break;
+        }
+
+        // Validate the parserTable address is not nullptr
+        if (!parsersTable)
+        {
+            sempPrintln(printError, "SEMP: Please specify a parserTable data structure");
+            break;
+        }
+
+        // Validate the parserNameTable address is not nullptr
+        if (!parserNamesTable)
+        {
+            sempPrintln(printError, "SEMP: Please specify a parserNameTable data structure");
+            break;
+        }
+
+        // Validate the end-of-message callback routine address is not nullptr
+        if (!eomCallback)
+        {
+            sempPrintln(printError, "SEMP: Please specify an eomCallback routine");
+            break;
+        }
+
+        // Verify the parser name
+        if ((!parserName) || (!strlen(parserName)))
+        {
+            sempPrintln(printError, "SEMP: Please provide a name for the parser");
+            break;
+        }
+
+        // Verify that there is at least one parser in the table
+        if (!parsersCount)
+        {
+            sempPrintln(printError, "SEMP: Please provide at least one parser in parserTable");
+            break;
+        }
+
+        // Validate the parser address is not nullptr
+        parse = sempAllocateParseStructure(printDebug, scratchPadBytes, bufferLength);
+        if (!parse)
+        {
+            sempPrintln(printError, "SEMP: Failed to allocate the parse structure");
+            break;
+        }
+
+        // Initialize the parser
+        parse->printError = printError;
+        parse->parsers_table = parsersTable;
+        parse->parsers_count = parsersCount;
+        parse->parserNames_table = parserNamesTable;
+        parse->state = sempFirstByte;
+        parse->eomCallback = eomCallback;
+        parse->parserName = parserName;
+        parse->badCrc = badCrcCallback;
+
+        // Display the parser configuration
+        sempPrintParserConfiguration(parse, parse->printDebug);
+    } while (0);
+
+    // Return the parse structure address
+    return parse;
+}
+
+bool sempFirstByte(SEMP_PARSE_STATE *parse, uint8_t data)
+{
+    uint8_t index;
+    SEMP_PARSE_ROUTINE parseRoutine;
+
+    if (parse)
+    {
+        // Add this byte to the buffer
+        parse->crc = 0;
+        parse->computeCrc = nullptr;
+        parse->msg_length = 0;
+        parse->parser_type = parse->parsers_count;
+        parse->buffer[parse->msg_length++] = data;
+
+        // Walk through the parse table
+        for (index = 0; index < parse->parsers_count; index++)
+        {
+            parseRoutine = parse->parsers_table[index];
+            if (parseRoutine(parse, data))
+            {
+                parse->parser_type = index;
+                return true;
+            }
+        }
+
+        // Preamble byte not found, continue searching for a preamble byte
+        parse->state = sempFirstByte;
+    }
+    return false;
+}
+
+// Parse the next byte
+void sempParseNextByte(SEMP_PARSE_STATE *parse, uint8_t data)
+{
+    if (parse)
+    {
+        // Verify that enough space exists in the buffer
+        if (parse->msg_length >= parse->buffer_length)
+        {
+            // Message too long
+            sempPrintf(parse->printError, "SEMP %s: Message too long, increase the buffer size > %d\r\n",
+                       parse->parserName,
+                       parse->buffer_length);
+
+            // Start searching for a preamble byte
+            sempFirstByte(parse, data);
+            return;
+        }
+
+        // Save the data byte
+        parse->buffer[parse->msg_length++] = data;
+
+        // Compute the CRC value for the message
+        if (parse->computeCrc)
+            parse->crc = parse->computeCrc(parse, data);
+
+        // Update the parser state based on the incoming byte
+        parse->state(parse, data);
+    }
+}
+
+// Shutdown the parser
+void sempStopParser(SEMP_PARSE_STATE **parse)
+{
+    // Free the parse structure if it was specified
+    if (parse && *parse)
+    {
+        semp_util_free(*parse);
+        *parse = nullptr;
+    }
+}
+//----------------------------------------
+// CRC32计算函数（供各协议使用）
+//----------------------------------------
+
+uint32_t semp_computeCrc32(SEMP_PARSE_STATE *parse, uint8_t data)
+{
+    (void)parse; // 避免未使用参数警告
+    uint32_t crc = parse->crc;
+    crc = semp_crc32Table[(crc ^ data) & 0xff] ^ (crc >> 8);
+    return crc;
+}
+
+//----------------------------------------
+// 工具函数实现
+//----------------------------------------
+// Allocate the parse structure
+/**
+ * @brief 分配解析结构体
+ * @param printDebug 调试输出回调函数
+ * @param scratchPadBytes 解析器scratch区域大小
+ * @param bufferLength 缓冲区大小
+ * @return 解析结构体指针
+ */
+SEMP_PARSE_STATE * sempAllocateParseStructure(
+    SEMP_PRINTF_CALLBACK printDebug,
+    uint16_t scratchPadBytes,
+    uint16_t bufferLength
+    )
+{
+    int length;
+    SEMP_PARSE_STATE *parse = NULL;
+    int parseBytes;
+
+    // Print the scratchPad area size
+    sempPrintf(printDebug, "scratchPadBytes: 0x%04x (%d) bytes",
+               scratchPadBytes, scratchPadBytes);
+
+    // Align the scratch patch area
+    if (scratchPadBytes < SEMP_ALIGN(scratchPadBytes))
+    {
+        scratchPadBytes = SEMP_ALIGN(scratchPadBytes);
+        sempPrintf(printDebug,
+                   "scratchPadBytes: 0x%04x (%d) bytes after alignment",
+                   scratchPadBytes, scratchPadBytes);
+    }
+
+    // Determine the minimum length for the scratch pad
+    length = SEMP_ALIGN(sizeof(SEMP_SCRATCH_PAD));
+    if (scratchPadBytes < length)
+    {
+        scratchPadBytes = length;
+        sempPrintf(printDebug,
+                   "scratchPadBytes: 0x%04x (%d) bytes after mimimum size adjustment",
+                   scratchPadBytes, scratchPadBytes);
+    }
+    parseBytes = SEMP_ALIGN(sizeof(SEMP_PARSE_STATE));
+    sempPrintf(printDebug, "parseBytes: 0x%04x (%d)", parseBytes, parseBytes);
+
+    // Verify the minimum bufferLength
+    if (bufferLength < SEMP_MINIMUM_BUFFER_LENGTH)
+    {
+        sempPrintf(printDebug,
+                   "SEMP: Increasing bufferLength from %ld to %d bytes, minimum size adjustment",
+                   bufferLength, SEMP_MINIMUM_BUFFER_LENGTH);
+        bufferLength = SEMP_MINIMUM_BUFFER_LENGTH;
+    }
+
+    // Allocate the parser
+    length = parseBytes + scratchPadBytes;
+    parse = (SEMP_PARSE_STATE *)semp_util_malloc(length + bufferLength);
+    sempPrintf(printDebug, "parse: %p", (void *)parse);
+
+    // Initialize the parse structure
+    if (parse)
+    {
+        // Zero the parse structure
+        memset(parse, 0, length);
+
+        // Set the scratch pad area address
+        parse->scratchPad = ((uint8_t *)parse) + parseBytes;
+        parse->printDebug = printDebug;
+        sempPrintf(parse->printDebug, "parse->scratchPad: %p", parse->scratchPad);
+
+        // Set the buffer address and length
+        parse->buffer_length = bufferLength;
+        parse->buffer = ((uint8_t *)parse->scratchPad + scratchPadBytes);
+        sempPrintf(parse->printDebug, "parse->buffer: %p", parse->buffer);
+    }
+    return parse;
+}
+
+void * semp_util_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void semp_util_free(void *ptr)
+{
+    if (ptr) {
+        free(ptr);
+    }
+}
+
+// Print the parser's configuration
+void sempPrintParserConfiguration(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print)
+{
+    if (print && parse)
+    {
+        sempPrintln(print, "SparkFun Extensible Message Parser");
+        sempPrintf(print, "    Name: %p (%s)", parse->parserName, parse->parserName);
+        sempPrintf(print, "    parsers: %p", (void *)parse->parsers_table);
+        sempPrintf(print, "    parserNames: %p", (void *)parse->parserNames_table);
+        sempPrintf(print, "    parserCount: %d", parse->parsers_count);
+        sempPrintf(print, "    printError: %p", parse->printError);
+        sempPrintf(print, "    printDebug: %p", parse->printDebug);
+        sempPrintf(print, "    Scratch Pad: %p (%ld bytes)",
+                   (void *)parse->scratchPad, parse->buffer - (uint8_t *)parse->scratchPad);
+        sempPrintf(print, "    computeCrc: %p", (void *)parse->computeCrc);
+        sempPrintf(print, "    crc: 0x%08x", parse->crc);
+        sempPrintf(print, "    State: %p%s", (void *)parse->state,
+                   (parse->state == sempFirstByte) ? " (sempFirstByte)" : "");
+        sempPrintf(print, "    EomCallback: %p", (void *)parse->eomCallback);
+        sempPrintf(print, "    Buffer: %p (%d bytes)",
+                   (void *)parse->buffer, parse->buffer_length);
+        sempPrintf(print, "    length: %d message bytes", parse->msg_length);
+        sempPrintf(print, "    type: %d (%s)", parse->parser_type, sempGetTypeName(parse, parse->parser_type));
+    }
+}
+/**
+ * @brief 将ASCII字符转换为半字节
+ * @param data 输入字符
+ * @return 转换后的半字节值
+ */
+int semp_util_asciiToNibble(int data)
+{
+    // 转换为小写
+    data |= 0x20;
+    if ((data >= 'a') && (data <= 'f'))
+        return data - 'a' + 10;
+    if ((data >= '0') && (data <= '9'))
+        return data - '0';
+    return -1;
+}
+
+/**
+ * @brief 安全打印函数
+ * @param callback 回调函数
+ * @param format 格式字符串
+ * @param ... 可变参数
+ */
+void semp_util_safePrintf(SEMP_PRINTF_CALLBACK callback, const char *format, ...)
+{
+    if (callback) {
+        va_list args;
+        va_start(args, format);
+        va_list args2;
+
+        va_copy(args2, args);
+        char buf[vsnprintf(NULL, 0, format, args) + sizeof("\r\n")];
+
+        vsnprintf(buf, sizeof buf, format, args2);
+
+        // Add CR+LF
+        buf[sizeof(buf) - 3] = '\r';
+        buf[sizeof(buf) - 2] = '\n';
+        buf[sizeof(buf) - 1] = '\0';
+
+        callback("%s", buf);
+
+        va_end(args);
+        va_end(args2);
+    }
+}
+
+/**
+ * @brief 禁用调试输出
+ * @param parse 解析结构体
+ */
+void sempDisableDebugOutput(SEMP_PARSE_STATE *parse)
+{
+    if (parse) {
+        parse->printDebug = NULL;
+    }
+}
+
+/**
+ * @brief 启用调试输出
+ * @param parse 解析结构体
+ * @param print 输出回调函数
+ */
+void sempEnableDebugOutput(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print)
+{
+    if (parse) {
+        parse->printDebug = print;
+    }
+}
+
+/**
+ * @brief 禁用错误输出
+ * @param parse 解析结构体
+ */
+void sempDisableErrorOutput(SEMP_PARSE_STATE *parse)
+{
+    if (parse) {
+        parse->printError = NULL;
+    }
+}
+
+/**
+ * @brief 启用错误输出
+ * @param parse 解析结构体
+ * @param print 输出回调函数
+ */
+void sempEnableErrorOutput(SEMP_PARSE_STATE *parse, SEMP_PRINTF_CALLBACK print)
+{
+    if (parse) {
+        parse->printError = print;
+    }
+}
+
+/**
+ * @brief 将十六进制数据转换为字符串
+ * @param data 输入数据
+ * @param length 数据长度
+ * @param output 输出字符串
+ * @param outputSize 输出字符串大小
+ * @return 转换后的字符串长度
+ */
+int semp_util_hexToString(const uint8_t *data, uint16_t length, char *output, uint16_t outputSize)
+{
+    if (!data || !output || outputSize < 3) return 0;
+    
+    int pos = 0;
+    for (uint16_t i = 0; i < length && pos < (outputSize - 3); i++) {
+        pos += snprintf(output + pos, outputSize - pos, "%02X ", data[i]);
+    }
+    
+    if (pos > 0 && output[pos - 1] == ' ') {
+        output[pos - 1] = '\0'; // 移除最后一个空格
+        pos--;
+    }
+    
+    return pos;
+}
+
+/**
+ * @brief 计算校验和
+ * @param data 输入数据
+ * @param length 数据长度
+ * @return 校验和值
+ */
+uint8_t semp_util_calculateChecksum(const uint8_t *data, uint16_t length)
+{
+    uint8_t checksum = 0;
+    for (uint16_t i = 0; i < length; i++) {
+        checksum ^= data[i];
+    }
+    return checksum;
+}
+
+/**
+ * @brief 解析分隔符字段
+ * @param sentence 输入字符串
+ * @param fields_void 输出字段
+ * @param maxFields 最大字段数
+ * @param fieldSize 字段大小
+ * @param delimiter 分隔符
+ * @param terminator 终止符
+ * @return 解析后的字段数
+ */
+int semp_util_parse_delimited_fields(const char *sentence, void *fields_void, int maxFields, int fieldSize, char delimiter, char terminator)
+{
+    char (*fields)[fieldSize] = fields_void;
+    if (!sentence || !fields || maxFields <= 0) {
+        return 0;
+    }
+
+    int fieldCount = 0;
+    int fieldPos = 0;
+    const char *p = sentence;
+
+    // Skip leading non-field characters if necessary (like '$' in NMEA)
+    if (*p < 32) p++; 
+    
+    fields[fieldCount][0] = '\0';
+
+    while(*p && *p != terminator && fieldCount < maxFields) {
+        if (*p == delimiter) {
+            fields[fieldCount][fieldPos] = '\0';
+            fieldCount++;
+            if(fieldCount < maxFields) {
+                fields[fieldCount][0] = '\0';
+                fieldPos = 0;
+            }
+        } else {
+            if (fieldPos < (fieldSize - 1)) {
+                fields[fieldCount][fieldPos++] = *p;
+            }
+        }
+        p++;
+    }
+
+    if (fieldPos > 0) {
+        fields[fieldCount][fieldPos] = '\0';
+        fieldCount++;
+    }
+
+    return fieldCount;
+}
 
 //----------------------------------------
 // 内部常量
@@ -67,240 +546,3 @@ const unsigned long semp_crc32Table[256] = {
     0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
-
-//----------------------------------------
-// 内部函数声明
-//----------------------------------------
-
-// 主状态机 - 寻找前导字节
-static bool msgp_findPreamble(MP_PARSE_STATE *parse, uint8_t data);
-
-//----------------------------------------
-// 工具函数实现
-//----------------------------------------
-
-const char* msgp_getVersion(void)
-{
-    return VERSION_STRING;
-}
-
-int msgp_util_asciiToNibble(int data)
-{
-    // 转换为小写
-    data |= 0x20;
-    if ((data >= 'a') && (data <= 'f'))
-        return data - 'a' + 10;
-    if ((data >= '0') && (data <= '9'))
-        return data - '0';
-    return -1;
-}
-
-void msgp_util_safePrintf(MP_PRINTF_CALLBACK callback, const char *format, ...)
-{
-    if (callback) {
-        va_list args;
-        va_start(args, format);
-        
-        char buffer[512];
-        vsnprintf(buffer, sizeof(buffer), format, args);
-        callback("%s", buffer);
-        
-        va_end(args);
-    }
-}
-
-int msgp_util_hexToString(const uint8_t *data, uint16_t length, char *output, uint16_t outputSize)
-{
-    if (!data || !output || outputSize < 3) return 0;
-    
-    int pos = 0;
-    for (uint16_t i = 0; i < length && pos < (outputSize - 3); i++) {
-        pos += snprintf(output + pos, outputSize - pos, "%02X ", data[i]);
-    }
-    
-    if (pos > 0 && output[pos - 1] == ' ') {
-        output[pos - 1] = '\0'; // 移除最后一个空格
-        pos--;
-    }
-    
-    return pos;
-}
-
-uint8_t msgp_util_calculateChecksum(const uint8_t *data, uint16_t length)
-{
-    uint8_t checksum = 0;
-    for (uint16_t i = 0; i < length; i++) {
-        checksum ^= data[i];
-    }
-    return checksum;
-}
-
-int msgp_util_parse_delimited_fields(const char *sentence, void *fields_void, int maxFields, int fieldSize, char delimiter, char terminator)
-{
-    char (*fields)[fieldSize] = fields_void;
-    if (!sentence || !fields || maxFields <= 0) {
-        return 0;
-    }
-
-    int fieldCount = 0;
-    int fieldPos = 0;
-    const char *p = sentence;
-
-    // Skip leading non-field characters if necessary (like '$' in NMEA)
-    if (*p < 32) p++; 
-    
-    fields[fieldCount][0] = '\0';
-
-    while(*p && *p != terminator && fieldCount < maxFields) {
-        if (*p == delimiter) {
-            fields[fieldCount][fieldPos] = '\0';
-            fieldCount++;
-            if(fieldCount < maxFields) {
-                fields[fieldCount][0] = '\0';
-                fieldPos = 0;
-            }
-        } else {
-            if (fieldPos < (fieldSize - 1)) {
-                fields[fieldCount][fieldPos++] = *p;
-            }
-        }
-        p++;
-    }
-
-    if (fieldPos > 0) {
-        fields[fieldCount][fieldPos] = '\0';
-        fieldCount++;
-    }
-
-    return fieldCount;
-}
-
-//----------------------------------------
-// 协议信息函数
-//----------------------------------------
-
-const char* msgp_getProtocolName(const MP_PARSE_STATE *parse, uint16_t protocolIndex)
-{
-    if (!parse || protocolIndex >= parse->parserCount) {
-        return "Unknown";
-    }
-    return parse->parsers[protocolIndex].name;
-}
-
-const char* msgp_getProtocolDescription(uint16_t protocolIndex)
-{
-    // This function is no longer supported as the description has been removed.
-    (void)protocolIndex;
-    return "Description Removed";
-}
-
-//----------------------------------------
-// 主状态机
-//----------------------------------------
-static bool msgp_findPreamble(MP_PARSE_STATE *parse, uint8_t data)
-{
-    if (!parse) return false;
-    
-    // Reset state for a new search
-    parse->length = 1; // Start with the current byte
-    parse->buffer[0] = data;
-    parse->crc = 0;
-    parse->computeCrc = NULL;
-    
-    // Check data (the last byte in the buffer) for preambles
-    uint8_t last_byte = parse->buffer[parse->length - 1];
-    for (uint16_t i = 0; i < parse->parserCount; i++) {
-        if (parse->parsers[i].preambleFunction(parse, last_byte)) {
-            parse->protocolIndex = i;
-            // The preamble function will set the next state
-            return true;
-        }
-    }
-    
-    // No preamble found, reset buffer and stay in this state
-    parse->length = 0;
-    return true; 
-}
-
-//----------------------------------------
-// 公共API实现
-//----------------------------------------
-bool msgp_init(MP_PARSE_STATE *parse,
-                  uint8_t *buffer,
-                  uint16_t bufferLength,
-                  const MP_PARSER_INFO *userParsers,
-                  uint16_t userParserCount,
-                  MP_EOM_CALLBACK eomCallback,
-                  MP_BAD_CRC_CALLBACK badCrcCallback,
-                  const char *parserName,
-                  MP_PRINTF_CALLBACK printError,
-                  MP_PRINTF_CALLBACK printDebug)
-{
-    if (!parse || !buffer || bufferLength < MP_MINIMUM_BUFFER_LENGTH || !eomCallback || !userParsers || userParserCount == 0) {
-        if (printError) {
-            printError("[MP] 初始化失败: 无效的参数\n");
-        }
-        return false;
-    }
-
-    memset(parse, 0, sizeof(MP_PARSE_STATE));
-
-    parse->buffer = buffer;
-    parse->bufferLength = bufferLength;
-    parse->eomCallback = eomCallback;
-    parse->badCrc = badCrcCallback;
-    parse->parserName = parserName ? parserName : "DefaultParser";
-    parse->printError = printError;
-    parse->printDebug = printDebug;
-    parse->parsers = userParsers;
-    parse->parserCount = userParserCount;
-
-    parse->state = msgp_findPreamble;
-    parse->protocolIndex = userParserCount; // 初始状态为未知
-
-    msgp_util_safePrintf(parse->printDebug, "[MP] 解析器 '%s' 初始化成功，包含 %d 个协议\n",
-                 parse->parserName, parse->parserCount);
-
-    return true;
-}
-
-bool msgp_processByte(MP_PARSE_STATE *parse, uint8_t data)
-{
-    if (!parse) return false;
-
-    if (parse->length >= parse->bufferLength) {
-        parse->state = msgp_findPreamble;
-    }
-
-    parse->buffer[parse->length++] = data;
-
-    if (parse->computeCrc) {
-        parse->crc = parse->computeCrc(parse, data);
-    }
-    
-    if (!parse->state(parse, data)) {
-        parse->state = msgp_findPreamble;
-    }
-
-    return true;
-}
-
-uint16_t msgp_getActiveProtocol(const MP_PARSE_STATE *parse)
-{
-    if (!parse) {
-        return 0xFFFF; // 返回一个无效索引
-    }
-    return parse->protocolIndex;
-}
-
-//----------------------------------------
-// CRC32计算函数（供各协议使用）
-//----------------------------------------
-
-uint32_t msgp_computeCrc32(MP_PARSE_STATE *parse, uint8_t data)
-{
-    (void)parse; // 避免未使用参数警告
-    uint32_t crc = parse->crc;
-    crc = mp_crc32Table[(crc ^ data) & 0xff] ^ (crc >> 8);
-    return crc;
-} 
