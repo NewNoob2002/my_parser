@@ -6,11 +6,7 @@
  * @date 2024-12
  */
 
-#include <stdio.h>
-#include <string.h>
 #include "../Message_Parser.h"
-#include "../Parse_NMEA.h"
-#include "../Parse_RTCM.h"
 
 //----------------------------------------
 // 测试状态
@@ -67,12 +63,10 @@ int main() {
 
     // 1. 定义协议解析器表
     const SEMP_PARSE_ROUTINE parsersTable[] = {
-        sempNmeaPreamble,
-        sempRtcmPreamble,
         sempCustomPreamble
     };
     const char *parserNamesTable[] = {
-        "NMEA", "RTCM3", "Custom-BIN"
+        "Custom-BIN"
     };
     const uint8_t parserCount = sizeof(parsersTable) / sizeof(parsersTable[0]);
 

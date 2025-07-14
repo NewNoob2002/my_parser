@@ -14,7 +14,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # 收集所有解析器源文件
 file(GLOB PARSER_SOURCES
-    "Parse_BT.c"
+    "Parse_Custom.c"
     "Parse_NMEA.c"
     "Parse_RTCM.c"
     "Parse_UBLOX.c"

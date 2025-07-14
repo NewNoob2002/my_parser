@@ -15,7 +15,6 @@
 #include "../Parse_UBLOX.h"
 #include "../Parse_Unicore_Binary.h"
 #include "../Parse_Unicore_Hash.h"
-#include "../Parse_BT.h"
 
 #define MAX_PROTOCOL_TYPES 16
 
@@ -57,7 +56,6 @@ int main() {
         sempUbloxPreamble,
         sempUnicoreBinaryPreamble,
         sempUnicoreHashPreamble,
-        sempBtPreamble
     };
     const char *parserNamesTable[] = {
         "NMEA", "RTCM3", "u-blox", "Unicore-BIN", "Unicore-HASH", "Custom-BIN"
